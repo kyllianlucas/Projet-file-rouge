@@ -1,20 +1,26 @@
 package com.doranco.site.model;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.*;
 import javax.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Entity
 @Table(name = "utilisateurs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User implements UserDetails {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,7 +47,6 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-
     @NotBlank(message = "Le mot de passe est requis")
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
         message = "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial")
@@ -62,4 +67,43 @@ public class User {
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<Adresse> adresses;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    public void setPassword(String password) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        this.password = passwordEncoder.encode(password);
+    }
 }
