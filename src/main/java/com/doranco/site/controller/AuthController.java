@@ -27,7 +27,7 @@ public class AuthController {
         if (result.hasErrors()) {
             return "register";
         }
-        userService.save(user);
+        userService.saveUser(user, "USER"); // Supposons que vous attribuez par défaut le rôle "USER" aux nouveaux utilisateurs
         return "redirect:/login";
     }
 

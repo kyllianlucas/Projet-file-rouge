@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -24,9 +25,14 @@ public class UserService {
 
     public User saveUser(User user, String roleName) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        Role userRole = roleRepository.findByName(roleName);
-        user.setRoles(Set.of(userRole));
-        return userRepository.save(user);
+        Optional<Role> userRoleOptional = roleRepository.findByName(roleName);
+        if (userRoleOptional.isPresent()) {
+            Role userRole = userRoleOptional.get();
+            user.setRoles(Set.of(userRole));
+            return userRepository.save(user);
+        } else {
+            throw new IllegalArgumentException("Role not found: " + roleName);
+        }
     }
 
     public User findByEmail(String email) {
