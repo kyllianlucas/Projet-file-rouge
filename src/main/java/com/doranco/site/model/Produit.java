@@ -30,7 +30,10 @@ public class Produit {
 
     @Column(name = "marque" , nullable = false)
     private String marque;
-
+    
+    @Column (name = "disponible", nullable = false)
+    private boolean disponible;
+    
     @ManyToMany
     @JoinTable(
         name = "produit_categorie",
