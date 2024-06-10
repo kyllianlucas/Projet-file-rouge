@@ -50,4 +50,8 @@ public class Adresse {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    
+    @ManyToOne
+    @JoinColumn(name = "commande_id")
+    private Commande commande;
 }
