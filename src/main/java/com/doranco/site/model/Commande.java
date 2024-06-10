@@ -26,4 +26,7 @@ public class Commande {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "date_commande", nullable = false)
     private Date dateCommande;
+    
+    @OneToOne(mappedBy = "commande")
+    private Adresse adresseLivraison;
 }
