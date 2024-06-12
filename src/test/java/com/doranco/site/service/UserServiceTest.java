@@ -18,7 +18,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
-import java.util.Set;
+import java.util.HashSet;
 
 public class UserServiceTest {
 
@@ -49,7 +49,7 @@ public class UserServiceTest {
         role.setName("USER");
 
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(roleRepository.findByName(anyString())).thenReturn(Optional.of(role));
+        when(roleRepository.findByName(anyString())).thenReturn(role);
         when(userRepository.save(any(User.class))).thenReturn(user);
 
         User savedUser = userService.saveUser(user, "USER");
@@ -70,7 +70,7 @@ public class UserServiceTest {
         user.setPassword("plainPassword");
 
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(roleRepository.findByName(anyString())).thenReturn(Optional.empty());
+        when(roleRepository.findByName(anyString())).thenReturn(null);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             userService.saveUser(user, "INVALID_ROLE");

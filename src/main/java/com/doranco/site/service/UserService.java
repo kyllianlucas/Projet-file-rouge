@@ -1,41 +1,45 @@
 package com.doranco.site.service;
 
-import com.doranco.site.model.User;
-import com.doranco.site.model.Role;
-import com.doranco.site.repository.RoleRepository;
-import com.doranco.site.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import java.util.HashSet;
+import java.util.Optional;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.Set;
+import com.doranco.site.model.Role;
+import com.doranco.site.model.User;
+import com.doranco.site.repository.RoleRepository;
+import com.doranco.site.repository.UserRepository;
 
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public User saveUser(User user, String roleName) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        Optional<Role> userRoleOptional = roleRepository.findByName(roleName);
-        if (userRoleOptional.isPresent()) {
-            Role userRole = userRoleOptional.get();
-            user.setRoles(Set.of(userRole));
-            return userRepository.save(user);
-        } else {
+        
+        Role role = roleRepository.findByName(roleName);
+        if (role == null) {
             throw new IllegalArgumentException("Role not found: " + roleName);
         }
+        
+        user.setRoles(new HashSet<>());
+        user.getRoles().add(role);
+        
+        return userRepository.save(user);
     }
 
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.orElse(null);
     }
 }

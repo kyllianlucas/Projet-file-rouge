@@ -1,15 +1,18 @@
+package com.doranco.site.service;
+
+import com.doranco.site.exception.ResourceNotFoundException;
 import com.doranco.site.model.Produit;
 import com.doranco.site.repository.ProduitRepository;
-import com.doranco.site.service.ProduitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -45,6 +48,12 @@ public class ProduitServiceTest {
     }
 
     @Test
+    void testFindById_NotFound() {
+        when(produitRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> produitService.findById(1L));
+    }
+
+    @Test
     void testAddProduit() {
         when(produitRepository.save(produit)).thenReturn(produit);
         Produit produitAdded = produitService.addProduit(produit);
@@ -55,17 +64,25 @@ public class ProduitServiceTest {
     @Test
     void testUpdateQuantite() {
         when(produitRepository.findById(1L)).thenReturn(Optional.of(produit));
+        when(produitRepository.save(produit)).thenReturn(produit); // Mock the save operation
+
         Produit produitMisAJour = produitService.updateQuantite(1L, 5);
+
+        assertNotNull(produitMisAJour);
         assertEquals(5, produitMisAJour.getQuantiteStock());
-        assertEquals(true, produitMisAJour.isDisponible());
+        assertTrue(produitMisAJour.isDisponible());
     }
 
     @Test
     void testUpdateQuantiteZero() {
         when(produitRepository.findById(1L)).thenReturn(Optional.of(produit));
+        when(produitRepository.save(produit)).thenReturn(produit); // Mock the save operation
+
         Produit produitMisAJour = produitService.updateQuantite(1L, 0);
+
+        assertNotNull(produitMisAJour);
         assertEquals(0, produitMisAJour.getQuantiteStock());
-        assertEquals(false, produitMisAJour.isDisponible());
+        assertFalse(produitMisAJour.isDisponible());
     }
 
     @Test

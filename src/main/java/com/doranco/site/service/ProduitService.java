@@ -1,5 +1,6 @@
 package com.doranco.site.service;
 
+import com.doranco.site.exception.ResourceNotFoundException;
 import com.doranco.site.model.Produit;
 import com.doranco.site.repository.ProduitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,27 +32,22 @@ public class ProduitService {
     }
 
     public Produit updateQuantite(Long produitId, int nouvelleQuantite) {
-        Produit produit = produitRepository.findById(produitId).orElse(null);
-        if (produit != null) {
-            produit.setQuantiteStock(nouvelleQuantite);
-            if (nouvelleQuantite == 0) {
-				produit.setDisponible(false);
-			}else {
-				produit.setDisponible(true);
-            }
-            return produitRepository.save(produit);
-        }
-        return null;
-     }   
+        Produit produit = produitRepository.findById(produitId)
+            .orElseThrow(() -> new ResourceNotFoundException("Produit non trouvé"));
+        produit.setQuantiteStock(nouvelleQuantite);
+        produit.setDisponible(nouvelleQuantite > 0);
+        return produitRepository.save(produit);
+    }
+
+
     public Produit addProduit(Produit produit) {
-        // Vérifier si le produit existe déjà
         if (produit.getId() != null && produitRepository.existsById(produit.getId())) {
             return null; // Le produit existe déjà
         }
         return produitRepository.save(produit);
     }
 
-	public Produit findById(long id) {
-	    return produitRepository.findById(id).orElse(null);
-	}
+    public Produit findById(Long id) {
+        return produitRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Produit non trouvé"));
+    }
 }

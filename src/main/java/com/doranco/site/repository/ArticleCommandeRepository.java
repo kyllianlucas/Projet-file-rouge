@@ -1,18 +1,11 @@
 package com.doranco.site.repository;
 
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+	
+	import com.doranco.site.model.ArticleCommande;
+	
+	@Repository
+	public interface ArticleCommandeRepository extends JpaRepository<ArticleCommande, Long> {
 
-import com.doranco.site.model.ArticleCommande;
-
-public interface ArticleCommandeRepository {
-
-	List<ArticleCommande> findAll();
-
-	Optional<ArticleCommande> findById(Long id);
-
-	ArticleCommande save(ArticleCommande articleCommande);
-
-	void deleteById(Long articleCommandeId);
-
-}
+	}

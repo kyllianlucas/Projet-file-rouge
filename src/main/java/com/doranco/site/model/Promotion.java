@@ -2,6 +2,7 @@ package com.doranco.site.model;
 
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.*;
@@ -30,14 +31,12 @@ public class Promotion {
     @Column(name = "pourcentage_reduction", nullable = false)
     private int pourcentageReduction;
 
-    @ManyToMany(mappedBy = "promotions")
-    private Set<Produit> produits;
-
     @Column(name = "date_debut", nullable = false)
     private LocalDate dateDebut;
 
     @Column(name = "date_fin", nullable = false)
     private LocalDate dateFin;
-
-    // Autres champs et méthodes si nécessaire
+    
+    @OneToMany(mappedBy = "promotion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Produit> produits;
 }

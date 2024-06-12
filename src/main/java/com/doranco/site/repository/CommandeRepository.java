@@ -1,18 +1,13 @@
 package com.doranco.site.repository;
 
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.doranco.site.model.Commande;
 
-public interface CommandeRepository {
+@Repository
+public interface CommandeRepository extends JpaRepository<Commande, Long>{
 
-	List<Commande> findAll();
-
-	Optional<Commande> findById(Long id);
-
-	Commande save(Commande commande);
-
-	void deleteById(Long commandeId);
+	
 
 }

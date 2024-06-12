@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,22 +53,41 @@ public class AdresseServiceTest {
 
         Optional<Adresse> result = adresseService.getAdresseById(1L);
 
-        assertEquals(adresse, result);
+        assertTrue(result.isPresent());
+        assertEquals(adresse, result.get());
+        verify(adresseRepository, times(1)).findById(1L);
     }
 
     @Test
     public void testSaveAdresse() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(adresseRepository.save(adresse)).thenReturn(adresse);
+        when(adresseRepository.save(any(Adresse.class))).thenReturn(adresse);
 
         Adresse savedAdresse = adresseService.saveAdresse(adresse, 1L);
 
+        assertNotNull(savedAdresse);
         assertEquals(adresse, savedAdresse);
+        verify(userRepository, times(1)).findById(1L);
         verify(adresseRepository, times(1)).save(adresse);
     }
 
     @Test
+    public void testSaveAdresseUserNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            adresseService.saveAdresse(adresse, 1L);
+        });
+
+        assertEquals("User not found: 1", exception.getMessage());
+        verify(userRepository, times(1)).findById(1L);
+        verify(adresseRepository, times(0)).save(any(Adresse.class));
+    }
+
+    @Test
     public void testDeleteAdresse() {
+        doNothing().when(adresseRepository).deleteById(1L);
+
         adresseService.deleteAdresse(1L);
 
         verify(adresseRepository, times(1)).deleteById(1L);

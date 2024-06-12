@@ -41,4 +41,12 @@ public class Produit {
         inverseJoinColumns = @JoinColumn(name = "categorie_id")
     )
     private Set<Categorie> categories;
+    
+    @ManyToOne
+    @JoinColumn(name = "panier_id")
+    private Panier panier;
+    
+    @ManyToOne
+    @JoinColumn(name = "promotion_id")
+    private Promotion promotion;
 }

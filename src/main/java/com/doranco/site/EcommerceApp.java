@@ -1,13 +1,11 @@
-package com.doranco.site.ecommerce;
+package com.doranco.site;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class EcommerceApplication {
-
+public class EcommerceApp {
 	public static void main(String[] args) {
-		SpringApplication.run(EcommerceApplication.class, args);
+		SpringApplication.run(EcommerceApp.class,args);
 	}
-
 }
