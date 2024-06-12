@@ -7,6 +7,7 @@ import com.doranco.site.model.Produit;
 import com.doranco.site.repository.PromotionRepository;
 import com.doranco.site.repository.ProduitRepository;
 import java.math.BigDecimal;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -42,28 +43,22 @@ public class PromotionService {
             promotion.setPourcentageReduction(promotionDetails.getPourcentageReduction());
             promotion.setDateDebut(promotionDetails.getDateDebut());
             promotion.setDateFin(promotionDetails.getDateFin());
+            
+            BigDecimal prixTotal = BigDecimal.ZERO;
+            if (promotion.getProduits() != null) {
+            	for (Produit produit : promotion.getProduits()) {
+					BigDecimal prix = produit.getPrix();
+					BigDecimal pourcentageReduction = new BigDecimal(promotion.getPourcentageReduction());
+					BigDecimal reduction = prix.multiply(pourcentageReduction.divide(new BigDecimal(100)));
+					BigDecimal prixFinal = prix.subtract(reduction);
+					prixTotal = prixTotal.add(prixFinal);
+            	}
+			}
+            promotion.setPrix(prixTotal);         
             return promotionRepository.save(promotion);
         } else {
             return null;
         }
     }
 
-    public List<Produit> getProductsByPromotionId(Long id) {
-        Promotion promotion = promotionRepository.findById(id).orElse(null);
-        if (promotion != null) {
-            List<Produit> produits = promotion.getProduits();
-            // Appliquer le pourcentage de réduction à chaque produit
-            for (Produit produit : produits) {
-                BigDecimal prix = produit.getPrix();
-                BigDecimal pourcentageReduction = new BigDecimal(promotion.getPourcentageReduction());
-                BigDecimal reduction = prix.multiply(pourcentageReduction.divide(new BigDecimal(100)));
-                BigDecimal prixFinal = prix.subtract(reduction);
-                produit.setPrix(prixFinal);
-                produitRepository.save(produit);
-            }
-            return produits;
-        } else {
-            return null;
-        }
-    }
 }
