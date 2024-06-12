@@ -1,6 +1,7 @@
 package com.doranco.site.model;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +31,9 @@ public class Promotion {
 
     @Column(name = "pourcentage_reduction", nullable = false)
     private int pourcentageReduction;
+    
+    @Column(name = "prix", nullable = false)
+    private BigDecimal prix;
 
     @Column(name = "date_debut", nullable = false)
     private LocalDate dateDebut;
