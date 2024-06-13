@@ -1,10 +1,13 @@
 package com.doranco.site.dao;
 
 import com.doranco.site.model.User;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -17,9 +20,10 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void saveUser(User user) {
+    public User saveUser(User user) {
         Session session = sessionFactory.getCurrentSession();
         session.save(user);
+        return user;
     }
 
     @Override
@@ -37,5 +41,12 @@ public class UserDaoImpl implements UserDao {
                 .setParameter("email", email)
                 .uniqueResult();
         return count != null && count > 0;
+    }
+
+    @Override
+    public Optional<User> findById(Long userId) {
+        Session session = sessionFactory.getCurrentSession();
+        User user = session.get(User.class, userId);
+        return Optional.ofNullable(user);
     }
 }

@@ -14,3 +14,17 @@ spring:
  h2:
   console:
    enabled: true
+jwt:
+  secret: your_secret_key
+  expiration: 3600
+mail:
+  host: smtp.example.com
+    port: 587
+    username: your-email@example.com
+    password: your-email-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

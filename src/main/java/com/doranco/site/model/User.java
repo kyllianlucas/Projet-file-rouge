@@ -60,13 +60,7 @@ public class User implements UserDetails {
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.(com|fr)$", 
         message = "L'email doit être valide et se terminer par .com ou .fr")
     @Column(name = "email", nullable = false, unique = true)
-    private String email;
-    
-    @NotBlank(message = "Le nom d'utilisateaur est requis")
-    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "le nom d'utilisateur ne doit contenir que des lettres et chiffres")
-    @Column(name = "pseudo", nullable = false)
-    private String pseudo;
-    
+    private String email; 
     
     @NotBlank(message = "Le mot de passe est requis")
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
