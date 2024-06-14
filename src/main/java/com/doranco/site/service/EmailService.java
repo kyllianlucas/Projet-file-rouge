@@ -30,4 +30,8 @@ public class EmailService {
         message.setText("Votre code de vérification est : " + code);
         javaMailSender.send(message);
     }
+
+    public String generateVerificationCode() {
+        return generateRandomCode(); // Utilisation de generateRandomCode() pour générer un code de vérification
+    }
 }

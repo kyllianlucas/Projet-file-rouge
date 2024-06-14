@@ -39,12 +39,12 @@ public class Adresse {
     
     @NotBlank(message = "Le code postal est requis")
     @Pattern(regexp = "^\\d{5}$", message = "Le code postal doit être composé de 5 chiffres")
-    @Column(name = "code_postal", length = 5)
+    @Column(name = "code_postal",nullable = false, length = 5)
     private String codePostal;
     
     @Size(max = 100, message = "Le complément d'adresse ne doit pas dépasser 100 caractères")
     @Pattern(regexp = "^[a-zA-Z0-9 ]*$", message = "Le complément d'adresse ne doit contenir que des lettres, des chiffres et des espaces")
-    @Column(name = "complement", length = 100)
+    @Column(name = "complement", nullable = true, length = 100)
     private String complementAdresse;
     
     @ManyToOne
