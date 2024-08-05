@@ -1,32 +1,34 @@
 package com.doranco.site.model;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Entity
-@Table(name = "commandes")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Table (name = "commande")
 public class Commande {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @OneToMany(mappedBy = "commande")
-    private Set<ArticleCommande> articlesCommande;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "date_commande", nullable = false)
-    private Date dateCommande;
     
-    @OneToOne(mappedBy = "commande")
-    private Adresse adresseLivraison;
+    @NotBlank(message = "Le nom est requis")
+    @Size(max = 8, message = "La date ne doit pas depasser 8 carateres")
+    @Column(name = "date", nullable = false, length = 8)
+    private Date dateCommande;
+
+    @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Item> items = new HashSet<>();
+    
 }

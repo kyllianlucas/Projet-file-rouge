@@ -1,23 +1,21 @@
 package com.doranco.site.model;
 
+import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "categories")
-@Data
-public class Categorie {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-
-    @Column(name = "nom", nullable = false, unique = true)
-    private String nom;
-
-    @ManyToMany(mappedBy = "categories")
-    private Set<Produit> produits;
+@Getter
+@Setter
+public class Categorie extends BaseCategorie
+{
+	 @OneToMany(mappedBy = "categorie", cascade = CascadeType.ALL, orphanRemoval = true)
+	    private Set<SousCategorie> sousCategories = new HashSet<>();
 }

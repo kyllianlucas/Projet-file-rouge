@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.doranco.site.exception.EmailException;
-import com.doranco.site.model.User;
+import com.doranco.site.model.Utilisateur;
 import com.doranco.site.model.VerificationRequest;
 import com.doranco.site.service.AuthService;
 
@@ -25,8 +25,8 @@ public class AuthController {
 	private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) throws EmailException {
-        User registeredUser = authService.registerUser(
+    public ResponseEntity<Utilisateur> registerUser(@RequestBody Utilisateur user) throws EmailException {
+    	Utilisateur registeredUser = authService.registerUser(
                 user.getNom(),
                 user.getPrenom(),
                 user.getDateNaissance(),
@@ -43,7 +43,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
+    public ResponseEntity<String> login(@RequestBody Utilisateur user) {
         String token = authService.login(user.getEmail(), user.getPassword());
         if (token != null) {
             return new ResponseEntity<>(token, HttpStatus.OK);
@@ -53,8 +53,8 @@ public class AuthController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody User updatedUser) {
-        User user = authService.updateUser(userId, updatedUser);
+    public ResponseEntity<Utilisateur> updateUser(@PathVariable Long userId, @RequestBody Utilisateur updatedUser) {
+        Utilisateur user = authService.updateUser(userId, updatedUser);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 

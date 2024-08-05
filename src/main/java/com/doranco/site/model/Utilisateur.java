@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User implements UserDetails {
+public class Utilisateur implements UserDetails {
     
    	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -77,25 +77,16 @@ public class User implements UserDetails {
     @Column(name = "date_naissance")
     private Date dateNaissance;
 
-    @OneToMany(mappedBy = "user")
-    private Set<Commande> commandes;
     
     @OneToMany(mappedBy = "user")
     private Set<Adresse> adresses;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles;
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-            .map(role -> new SimpleGrantedAuthority(role.getName()))
-            .collect(Collectors.toSet());
+    	return isAdmin ? Set.of(new SimpleGrantedAuthority("ROLE_ADMIN")) : Set.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override

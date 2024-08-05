@@ -1,12 +1,14 @@
 package com.doranco.site.service;
 
-import com.doranco.site.model.Commande;
-import com.doranco.site.repository.CommandeRepository;
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.doranco.site.model.Commande;
+import com.doranco.site.model.Item;
+import com.doranco.site.model.Panier;
+import com.doranco.site.repository.CommandeRepository;
 
 @Service
 public class CommandeService {
@@ -14,19 +16,18 @@ public class CommandeService {
     @Autowired
     private CommandeRepository commandeRepository;
 
-    public List<Commande> getAllCommandes() {
-        return commandeRepository.findAll();
-    }
+    public Commande createCommandeFromPanier(Panier panier) {
+        Commande commande = new Commande();
+        commande.setDateCommande(new Date());
 
-    public Optional<Commande> getCommandeById(Long id) {
-        return commandeRepository.findById(id);
-    }
+        for (Item panierItem : panier.getItems()) {
+            Item commandeItem = new Item();
+            commandeItem.setArticle(panierItem.getArticle());
+            commandeItem.setQuantity(panierItem.getQuantity());
+            commandeItem.setCommande(commande);
+            commande.getItems().add(commandeItem);
+        }
 
-    public Commande saveCommande(Commande commande) {
         return commandeRepository.save(commande);
-    }
-
-    public void deleteCommande(Long commandeId) {
-        commandeRepository.deleteById(commandeId);
     }
 }

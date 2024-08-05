@@ -3,9 +3,9 @@ package com.doranco.site.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.doranco.site.model.Promotion;
+import com.doranco.site.model.Utilisateur;
 
 @Repository
-public interface PromotionRepository extends JpaRepository<Promotion, Long> {
-
+public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
+	Utilisateur findByEmail(String email);
 }

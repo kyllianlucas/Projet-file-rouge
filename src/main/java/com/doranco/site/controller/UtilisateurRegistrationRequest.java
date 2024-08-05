@@ -6,7 +6,7 @@ import javax.validation.constraints.*;
 import java.util.Date;
 
 @Data
-public class UserRegistrationRequest {
+public class UtilisateurRegistrationRequest {
 
     @NotBlank(message = "Le nom est requis")
     private String nom;

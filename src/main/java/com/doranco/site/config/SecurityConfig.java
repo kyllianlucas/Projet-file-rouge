@@ -10,6 +10,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 
 @Configuration
 @EnableWebSecurity
@@ -31,12 +35,27 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/users/register", "/api/users/login").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/articles/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/user/**").hasAnyRole("USER")
                 .anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable) // Désactiver la page de login par défaut
-            .logout(logout -> logout.permitAll())
+            .logout(logout -> logout
+                .logoutUrl("/api/users/logout")
+                .logoutSuccessHandler(logoutSuccessHandler())
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
             .csrf(AbstractHttpConfigurer::disable); // Désactiver CSRF pour les appels API REST
         return http.build();
+    }
+
+    @Bean
+    public LogoutSuccessHandler logoutSuccessHandler() {
+        return (request, response, authentication) -> {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().flush();
+        };
     }
 }

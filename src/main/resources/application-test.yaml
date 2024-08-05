@@ -9,7 +9,7 @@ spring:
  datasource:
   url: jdbc:h2:mem:testdb
   driverClassName: org.h2.Driver
-  username: sa
+  username: root
   password: password
  h2:
   console:
@@ -17,14 +17,3 @@ spring:
 jwt:
   secret: your_secret_key
   expiration: 3600
-mail:
-  host: smtp.example.com
-    port: 587
-    username: your-email@example.com
-    password: your-email-password
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true

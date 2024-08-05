@@ -87,6 +87,17 @@
     		<groupId>org.springframework.boot</groupId>
     		<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>com.stripe</groupId>
+		    <artifactId>stripe-java</artifactId>
+		    <version>20.95.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <version>4.13.1</version>
+		    <scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

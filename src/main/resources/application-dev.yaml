@@ -14,14 +14,6 @@ spring:
 jwt:
   secret: your_secret_key
   expiration: 3600
-mail:
-  host: smtp.example.com
-    port: 587
-    username: your-email@example.com
-    password: your-email-password
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+stripe:
+  api:
+    key: sk_test_51PVFTHP8RWx0diMWWy8IRbANSx1rbWqu2pWAcYbH5LrJRSL8A7WB5yZzAVMPVmk0TgJJKvWfMb1xDzdF1i9sArJ3006AeBqas9
