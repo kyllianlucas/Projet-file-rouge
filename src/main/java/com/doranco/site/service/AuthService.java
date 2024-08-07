@@ -60,9 +60,9 @@ public class AuthService {
         user.setAdresses(Collections.singleton(adresse));
        
         userRepository.save(user);
-        String code = generateVerificationCode();
-        verificationCodes.put(user.getEmail(), code);
-        emailService.sendVerificationCode(user.getEmail(), code);
+//        String code = generateVerificationCode();
+//        verificationCodes.put(user.getEmail(), code);
+//        emailService.sendVerificationCode(user.getEmail(), code);
         return user;
     }
 

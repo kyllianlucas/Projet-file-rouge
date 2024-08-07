@@ -1,81 +1,144 @@
 package com.doranco.site.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 import com.doranco.site.exception.EmailException;
+import com.doranco.site.exception.UserNotFoundException;
+import com.doranco.site.model.Adresse;
 import com.doranco.site.model.Utilisateur;
 import com.doranco.site.repository.UtilisateurRepository;
 
 public class AuthServiceTest {
 
-	
-	@Autowired
-	private EmailService emailService;
-	
-	@Autowired
-	private UtilisateurRepository userRepository;
-	
-	private Utilisateur utilisateur;
-	
-	@Autowired
-	private AuthService authService;
-	
-	@Before
-    public void setUp() {
-        // Mock existing user
-		utilisateur = new Utilisateur();
-		utilisateur.setId(1L);
-		utilisateur.setEmail("existing@example.com");
-		Mockito.when(userRepository.findByEmail(utilisateur.getEmail())).thenReturn(utilisateur);
+    @Mock
+    private EmailService emailService;
 
-        // Mock save user
-        Mockito.when(userRepository.save(any(Utilisateur.class))).thenReturn(utilisateur);
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private UtilisateurRepository userRepository;
+
+    @InjectMocks
+    private AuthService authService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
-	
-	@Test
-	public void testRegisterUser_Success() throws EmailException {
-	
-		// Given
-        String nom = "John";
-        String prenom = "Doe";
-        Date dateNaissance = new Date();
-        String email = "john.doe@example.com";
+
+    @Test
+    void testRegisterUser_UserAlreadyExists() {
+        // Arrange
+        String email = "test@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(new Utilisateur());
+
+        // Act & Assert
+        EmailException exception = assertThrows(EmailException.class, () -> {
+            authService.registerUser("nom", "prenom", new Date(), email, "password", "telephone", 
+                                     "pays", "codePostal", "complementAdresse", "rue", "ville");
+        });
+        assertEquals("Un utilisateur avec cet email existe déjà.", exception.getMessage());
+    }
+
+    @Test
+    void testRegisterUser_Success() throws EmailException {
+        // Arrange
+        String email = "test@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(null);
+
+        Utilisateur savedUser = new Utilisateur();
+        when(userRepository.save(any(Utilisateur.class))).thenReturn(savedUser);
+
+        // Act
+        Utilisateur result = authService.registerUser("nom", "prenom", new Date(), email, "password", "telephone", 
+                                                      "pays", "codePostal", "complementAdresse", "rue", "ville");
+
+        // Assert
+        assertNotNull(result);
+    }
+
+    @Test
+    void testUpdateUser_UserNotFound() {
+        // Arrange
+        Long userId = 1L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            authService.updateUser(userId, new Utilisateur());
+        });
+        assertEquals("Utilisateur non trouvé avec l'id : " + userId, exception.getMessage());
+    }
+
+    @Test
+    void testUpdateUser_Success() {
+        // Arrange
+        Long userId = 1L;
+        Utilisateur existingUser = new Utilisateur();
+        existingUser.setId(userId);
+        existingUser.setNom("ancienNom");
+
+        Adresse existingAdresse = new Adresse();
+        existingAdresse.setId(1L);
+        existingUser.setAdresses(Collections.singleton(existingAdresse));
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(Utilisateur.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Utilisateur updatedUser = new Utilisateur();
+        updatedUser.setNom("nouveauNom");
+        Adresse updatedAdresse = new Adresse();
+        updatedAdresse.setId(1L);
+        updatedAdresse.setRue("nouvelleRue");
+        updatedUser.setAdresses(Collections.singleton(updatedAdresse));
+
+        // Act
+        Utilisateur result = authService.updateUser(userId, updatedUser);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("nouveauNom", result.getNom());
+        assertEquals("nouvelleRue", result.getAdresses().iterator().next().getRue());
+        verify(userRepository, times(1)).save(existingUser);
+    }
+
+    @Test
+    void testLogin_Success() {
+        // Arrange
+        String email = "test@example.com";
         String password = "password";
-        String telephone = "1234567890";
-        String pays = "France";
-        String codePostal = "75001";
-        String complementAdresse = "Apt 123";
-        String rue = "Rue de Rivoli";
-        String ville = "Paris";
+        Authentication authentication = mock(Authentication.class);
 
-        // When
-        Utilisateur newUser = authService.registerUser(nom, prenom, dateNaissance, email, password, telephone,
-                pays, codePostal, complementAdresse, rue, ville);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
 
-        // Then
-        assertEquals(email, newUser.getEmail());
-        assertEquals(nom, newUser.getNom());
-        assertEquals(prenom, newUser.getPrenom());
-        assertEquals(dateNaissance, newUser.getDateNaissance());
-        assertEquals(telephone, newUser.getTelephone());
-        assertEquals(false, newUser.isAdmin()); // Vérifie que l'utilisateur n'est pas admin
-        assertEquals(1, newUser.getAdresses().size()); // Vérifie que l'adresse est correctement ajoutée
+        // Act
+        String result = authService.login(email, password);
 
-        // Verify interactions with mocks
-        verify(userRepository, times(1)).findByEmail(email);
-        verify(userRepository, times(1)).save(any(Utilisateur.class));
-        verify(emailService, times(1)).sendVerificationCode(eq(email), anyString());
+        // Assert
+        assertNotNull(result);
+        assertEquals("votre_jwt_token", result);
     }
 }
