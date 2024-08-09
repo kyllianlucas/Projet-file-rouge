@@ -1,7 +1,12 @@
 package com.doranco.site.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -10,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.doranco.site.dto.AuthRequestDTO;
+import com.doranco.site.dto.JwtResponseDTO;
 import com.doranco.site.exception.EmailException;
 import com.doranco.site.model.Utilisateur;
-import com.doranco.site.model.VerificationRequest;
 import com.doranco.site.service.AuthService;
+import com.doranco.site.service.JwtService;
 
 import lombok.AllArgsConstructor;
 
@@ -21,7 +28,13 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/users")
 @AllArgsConstructor
 public class AuthController {
-
+	
+	@Autowired
+	private JwtService jwtService;
+	
+	@Autowired
+	private AuthenticationManager authenticationManager;
+	
 	private final AuthService authService;
 
     @PostMapping("/register")
@@ -43,14 +56,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Utilisateur user) {
-        String token = authService.login(user.getEmail(), user.getPassword());
-        if (token != null) {
-            return new ResponseEntity<>(token, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Identifiants incorrects", HttpStatus.UNAUTHORIZED);
-        }
-    }
+    public JwtResponseDTO AuthenticateAndGetToken(@RequestBody AuthRequestDTO authRequestDTO){
+		 Authentication authentication = authenticationManager.authenticate(new
+		UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(),
+		authRequestDTO.getPassword()));
+		 if(authentication.isAuthenticated()){
+			 return JwtResponseDTO
+			 .builder()
+			 .accessToken(jwtService.GenerateToken(authRequestDTO.getEmail()))
+			 .build();
+		 } else {
+			 throw new UsernameNotFoundException("invalid user request..!!");
+		 }
+	}
 
     @PutMapping("/{userId}")
     public ResponseEntity<Utilisateur> updateUser(@PathVariable Long userId, @RequestBody Utilisateur updatedUser) {
@@ -62,16 +80,5 @@ public class AuthController {
     public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword) {
     	authService.resetPassword(email, newPassword);
         return new ResponseEntity<>("Mot de passe réinitialisé avec succès", HttpStatus.OK);
-    }
-
-    @PostMapping("/verify-code")
-    public ResponseEntity<String> verifyCode(@RequestBody VerificationRequest verificationRequest) {
-        
-    	 boolean isValid = authService.verifyCode(verificationRequest.getEmail(), verificationRequest.getVerificationCode());
-         if (isValid) {
-             return ResponseEntity.ok("Code vérifié avec succès");
-         } else {
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Code de vérification invalide");
-         }
     }
 }

@@ -1,7 +1,6 @@
 package com.doranco.site.model;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

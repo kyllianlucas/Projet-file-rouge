@@ -1,3 +1,7 @@
 spring:
  application:
   name: e-commerce
+
+stripe:
+  api:
+    key: sk_test_51PVFTHP8RWx0diMWWy8IRbANSx1rbWqu2pWAcYbH5LrJRSL8A7WB5yZzAVMPVmk0TgJJKvWfMb1xDzdF1i9sArJ3006AeBqas9
