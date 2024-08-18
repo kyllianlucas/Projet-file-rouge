@@ -1,31 +1,32 @@
 package com.doranco.site.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.Date;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.doranco.site.dto.AdresseDTO;
+import com.doranco.site.dto.UtilisateurDTO;
 import com.doranco.site.exception.EmailException;
 import com.doranco.site.exception.UserNotFoundException;
-import com.doranco.site.model.Adresse;
 import com.doranco.site.model.Utilisateur;
 import com.doranco.site.repository.UtilisateurRepository;
 
-
-@ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
     @Mock
@@ -37,123 +38,136 @@ class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
-    private Utilisateur user;
-
     @BeforeEach
     void setUp() {
-        user = new Utilisateur();
-        user.setId(1L);
-        user.setNom("Doe");
-        user.setPrenom("John");
-        user.setEmail("john.doe@example.com");
-        user.setPassword("password");
-        user.setTelephone("123456789");
-        user.setDateNaissance(new Date());
-        user.setAdmin(false);
-
-        Adresse adresse = new Adresse();
-        adresse.setCodePostal("75000");
-        adresse.setPays("France");
-        adresse.setRue("123 Rue Example");
-        adresse.setVille("Paris");
-        user.setAdresses(Collections.singleton(adresse));
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testRegisterUserSuccess() throws EmailException {
-        when(userRepository.findByEmail(anyString())).thenReturn(null);
-        when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");
-        when(userRepository.save(any(Utilisateur.class))).thenReturn(user);
+    void testRegisterUser_Success() throws EmailException {
+        UtilisateurDTO utilisateurDTO = new UtilisateurDTO();
+        utilisateurDTO.setNom("John");
+        utilisateurDTO.setPrenom("Doe");
+        utilisateurDTO.setEmail("johndoe@example.com");
+        utilisateurDTO.setPassword("password");
+        utilisateurDTO.setTelephone("123456789");
 
-        Utilisateur savedUser = authService.registerUser(user.getNom(), user.getPrenom(), user.getDateNaissance(),
-                user.getEmail(), user.getPassword(), user.getTelephone(), "France", "75000", "Complement",
-                "Rue Example", "Paris");
+        AdresseDTO adresseDTO = new AdresseDTO();
+        adresseDTO.setCodePostal("75001");
+        adresseDTO.setPays("France");
+        adresseDTO.setRue("123 rue de Paris");
+        adresseDTO.setVille("Paris");
 
-        assertNotNull(savedUser);
-        assertEquals(user.getEmail(), savedUser.getEmail());
-        assertEquals("hashedPassword", savedUser.getPassword());
-        verify(userRepository, times(1)).save(any(Utilisateur.class));
-    }
+        when(userRepository.findByEmail("johndoe@example.com")).thenReturn(null);
+        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
 
-    @Test
-    void testRegisterUserEmailExists() {
-        when(userRepository.findByEmail(anyString())).thenReturn(user);
-
-        assertThrows(EmailException.class, () -> {
-            authService.registerUser(user.getNom(), user.getPrenom(), user.getDateNaissance(), user.getEmail(),
-                    user.getPassword(), user.getTelephone(), "France", "75000", "Complement", "Rue Example", "Paris");
-        });
-
-        verify(userRepository, never()).save(any(Utilisateur.class));
-    }
-
-    @Test
-    void testUpdateUserSuccess() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(anyString())).thenReturn("newHashedPassword");
-        when(userRepository.save(any(Utilisateur.class))).thenReturn(user);
-
-        Utilisateur updatedUser = new Utilisateur();
-        updatedUser.setNom("UpdatedName");
-        updatedUser.setPassword("newPassword");
-
-        Utilisateur result = authService.updateUser(1L, updatedUser);
+        Utilisateur result = authService.registerUser(utilisateurDTO, adresseDTO);
 
         assertNotNull(result);
-        assertEquals("UpdatedName", result.getNom());
-        assertEquals("newHashedPassword", result.getPassword());
-        verify(userRepository, times(1)).save(any(Utilisateur.class));
+        assertEquals("John", result.getNom());
+        assertEquals("Doe", result.getPrenom());
+        assertEquals("johndoe@example.com", result.getEmail());
+        assertEquals("encodedPassword", result.getPassword());
+        verify(userRepository, times(1)).save(result);
     }
 
     @Test
-    void testUpdateUserNotFound() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+    void testRegisterUser_EmailAlreadyExists() {
+        UtilisateurDTO utilisateurDTO = new UtilisateurDTO();
+        utilisateurDTO.setEmail("johndoe@example.com");
+
+        Utilisateur existingUser = new Utilisateur();
+        when(userRepository.findByEmail("johndoe@example.com")).thenReturn(existingUser);
+
+        assertThrows(EmailException.class, () -> {
+            authService.registerUser(utilisateurDTO, new AdresseDTO());
+        });
+
+        verify(userRepository, never()).save(any(Utilisateur.class));
+    }
+
+    @Test
+    void testUpdateUser_Success() {
+        Long userId = 1L;
+        Utilisateur existingUser = new Utilisateur();
+        existingUser.setId(userId);
+        existingUser.setNom("John");
+
+        Utilisateur updatedUser = new Utilisateur();
+        updatedUser.setNom("Jane");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(existingUser)).thenReturn(existingUser);
+
+        Utilisateur result = authService.updateUser(userId, updatedUser);
+
+        assertEquals("Jane", result.getNom());
+        verify(userRepository, times(1)).save(existingUser);
+    }
+
+    @Test
+    void testUpdateUser_UserNotFound() {
+        Long userId = 1L;
+        Utilisateur updatedUser = new Utilisateur();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> {
-            authService.updateUser(1L, new Utilisateur());
+            authService.updateUser(userId, updatedUser);
         });
 
         verify(userRepository, never()).save(any(Utilisateur.class));
     }
 
     @Test
-    void testResetPasswordSuccess() {
-        when(userRepository.findByEmail(anyString())).thenReturn(user);
-        when(passwordEncoder.encode(anyString())).thenReturn("newHashedPassword");
+    void testResetPassword_Success() {
+        String email = "johndoe@example.com";
+        String newPassword = "newPassword";
+        Utilisateur existingUser = new Utilisateur();
+        existingUser.setEmail(email);
 
-        authService.resetPassword("john.doe@example.com", "newPassword");
+        when(userRepository.findByEmail(email)).thenReturn(existingUser);
+        when(passwordEncoder.encode(newPassword)).thenReturn("encodedNewPassword");
 
-        verify(userRepository, times(1)).save(user);
-        assertEquals("newHashedPassword", user.getPassword());
+        authService.resetPassword(email, newPassword);
+
+        assertEquals("encodedNewPassword", existingUser.getPassword());
+        verify(userRepository, times(1)).save(existingUser);
     }
 
     @Test
-    void testResetPasswordUserNotFound() {
-        when(userRepository.findByEmail(anyString())).thenReturn(null);
+    void testResetPassword_UserNotFound() {
+        String email = "johndoe@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(null);
 
         assertThrows(UsernameNotFoundException.class, () -> {
-            authService.resetPassword("nonexistent@example.com", "newPassword");
+            authService.resetPassword(email, "newPassword");
         });
 
         verify(userRepository, never()).save(any(Utilisateur.class));
     }
 
     @Test
-    void testLoadUserByUsernameSuccess() {
-        when(userRepository.findByEmail(anyString())).thenReturn(user);
+    void testLoadUserByUsername_UserFound() {
+        String email = "johndoe@example.com";
+        Utilisateur existingUser = new Utilisateur();
+        existingUser.setEmail(email);
 
-        UserDetails foundUser = authService.loadUserByUsername("john.doe@example.com");
+        when(userRepository.findByEmail(email)).thenReturn(existingUser);
 
-        assertNotNull(foundUser);
-        assertEquals(user.getEmail(), foundUser.getUsername());
+        UserDetails userDetails = authService.loadUserByUsername(email);
+
+        assertNotNull(userDetails);
+        assertEquals(email, userDetails.getUsername());
     }
 
     @Test
-    void testLoadUserByUsernameNotFound() {
-        when(userRepository.findByEmail(anyString())).thenReturn(null);
+    void testLoadUserByUsername_UserNotFound() {
+        String email = "johndoe@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(null);
 
         assertThrows(UsernameNotFoundException.class, () -> {
-            authService.loadUserByUsername("nonexistent@example.com");
+            authService.loadUserByUsername(email);
         });
     }
 }

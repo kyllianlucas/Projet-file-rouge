@@ -1,8 +1,5 @@
 package com.doranco.site.service;
 
-import java.util.Collections;
-import java.util.Date;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,7 +7,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.doranco.site.config.SecurityConfig;
+import com.doranco.site.dto.AdresseDTO;
+import com.doranco.site.dto.UtilisateurDTO;
 import com.doranco.site.exception.EmailException;
 import com.doranco.site.exception.UserNotFoundException;
 import com.doranco.site.model.Adresse;
@@ -31,29 +29,36 @@ public class AuthService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     
     
-    public Utilisateur registerUser(String nom, String prenom, Date dateNaissance, String email, String password, String telephone,
-                             String pays, String codePostal, String complementAdresse, String rue, String ville) throws EmailException {
-    	Utilisateur userExist = userRepository.findByEmail(email);
+    /**
+     * Inscrit un nouvel utilisateur avec les informations fournies.
+     *
+     * @param utilisateurDTO les données de l'utilisateur à inscrire.
+     * @param adresseDTO les données de l'adresse associée à l'utilisateur.
+     * @return l'objet {@link Utilisateur} représentant l'utilisateur inscrit.
+     * @throws EmailException si un utilisateur avec le même email existe déjà.
+     */
+    public Utilisateur registerUser(UtilisateurDTO utilisateurDTO ,AdresseDTO adresseDto) throws EmailException {
+    	Utilisateur userExist = userRepository.findByEmail(utilisateurDTO.getEmail());
     	if (userExist != null) {
             throw new EmailException("Un utilisateur avec cet email existe déjà.");
         }
 
     	Utilisateur user = new Utilisateur();
-        user.setNom(nom);
-        user.setPrenom(prenom);
-        user.setDateNaissance(dateNaissance);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setTelephone(telephone);
+        user.setNom(utilisateurDTO.getNom());
+        user.setPrenom(utilisateurDTO.getPrenom());
+        user.setDateNaissance(utilisateurDTO.getDateNaissance());
+        user.setEmail(utilisateurDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(utilisateurDTO.getPassword()));
+        user.setTelephone(utilisateurDTO.getTelephone());
         user.setAdmin(false);
         
         
         Adresse adresse = new Adresse();
-        adresse.setCodePostal(codePostal);
-        adresse.setPays(pays);
-        adresse.setRue(rue);
-        adresse.setVille(ville);
-        adresse.setComplementAdresse(complementAdresse);    
+        adresse.setCodePostal(adresseDto.getCodePostal());
+        adresse.setPays(adresseDto.getPays());
+        adresse.setRue(adresseDto.getRue());
+        adresse.setVille(adresseDto.getVille());
+        adresse.setComplementAdresse(adresseDto.getComplementAdresse());    
         user.getAdresses().add(adresse);
         adresse.setUser(user);
         userRepository.save(user);

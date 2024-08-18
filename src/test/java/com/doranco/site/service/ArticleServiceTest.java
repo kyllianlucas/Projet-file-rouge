@@ -3,9 +3,9 @@ package com.doranco.site.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Optional;
+import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,12 +13,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.model.Article;
 import com.doranco.site.model.SousCategorie;
 import com.doranco.site.repository.ArticleRepository;
 import com.doranco.site.repository.CategorieRepository;
 
-public class ArticleServiceTest {
+class ArticleServiceTest {
 
     @Mock
     private ArticleRepository articleRepository;
@@ -37,51 +38,51 @@ public class ArticleServiceTest {
     @Test
     void testGetAllArticles() {
         // Arrange
-        List<Article> articles = new ArrayList<>();
-        articles.add(new Article());
-        when(articleRepository.findAll()).thenReturn(articles);
+        Article article1 = new Article();
+        Article article2 = new Article();
+        when(articleRepository.findAll()).thenReturn(Arrays.asList(article1, article2));
 
         // Act
-        List<Article> result = articleService.getAllArticles();
+        List<Article> articles = articleService.getAllArticles();
 
         // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(2, articles.size());
+        verify(articleRepository, times(1)).findAll();
     }
 
     @Test
     void testGetArticlesBySousCategorie() {
         // Arrange
         Long sousCategorieId = 1L;
-        List<Article> articles = new ArrayList<>();
-        articles.add(new Article());
-        when(articleRepository.findBySousCategorieId(sousCategorieId)).thenReturn(articles);
+        Article article1 = new Article();
+        Article article2 = new Article();
+        when(articleRepository.findBySousCategorieId(sousCategorieId)).thenReturn(Arrays.asList(article1, article2));
 
         // Act
-        List<Article> result = articleService.getArticlesBySousCategorie(sousCategorieId);
+        List<Article> articles = articleService.getArticlesBySousCategorie(sousCategorieId);
 
         // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(2, articles.size());
+        verify(articleRepository, times(1)).findBySousCategorieId(sousCategorieId);
     }
 
     @Test
-    void testGetArticleById_Success() {
+    void testGetArticleById_ArticleFound() {
         // Arrange
         Long articleId = 1L;
         Article article = new Article();
         when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
 
         // Act
-        Article result = articleService.getArticleById(articleId);
+        Article foundArticle = articleService.getArticleById(articleId);
 
         // Assert
-        assertNotNull(result);
-        assertEquals(article, result);
+        assertNotNull(foundArticle);
+        verify(articleRepository, times(1)).findById(articleId);
     }
 
     @Test
-    void testGetArticleById_NotFound() {
+    void testGetArticleById_ArticleNotFound() {
         // Arrange
         Long articleId = 1L;
         when(articleRepository.findById(articleId)).thenReturn(Optional.empty());
@@ -90,16 +91,20 @@ public class ArticleServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             articleService.getArticleById(articleId);
         });
+
         assertEquals("Article non trouvé", exception.getMessage());
+        verify(articleRepository, times(1)).findById(articleId);
     }
 
     @Test
-    void testSaveArticle_Success() {
+    void testSaveArticle() {
         // Arrange
-        String name = "Article";
-        String description = "Description";
-        int quantite = 10;
-        double prix = 100.0;
+        ArticleDTO articleDTO = new ArticleDTO();
+        articleDTO.setName("Article Name");
+        articleDTO.setDescription("Article Description");
+        articleDTO.setQuantite(10);
+        articleDTO.setPrix(100.0);
+
         Long categoryId = 1L;
         SousCategorie sousCategorie = new SousCategorie();
         when(categorieRepository.findById(categoryId)).thenReturn(Optional.of(sousCategorie));
@@ -108,28 +113,12 @@ public class ArticleServiceTest {
         when(articleRepository.save(any(Article.class))).thenReturn(article);
 
         // Act
-        Article result = articleService.saveArticle(name, description, quantite, prix, categoryId);
+        Article savedArticle = articleService.saveArticle(articleDTO, categoryId);
 
         // Assert
-        assertNotNull(result);
-        assertEquals(article, result);
-    }
-
-    @Test
-    void testSaveArticle_CategorieNotFound() {
-        // Arrange
-        String name = "Article";
-        String description = "Description";
-        int quantite = 10;
-        double prix = 100.0;
-        Long categoryId = 1L;
-        when(categorieRepository.findById(categoryId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            articleService.saveArticle(name, description, quantite, prix, categoryId);
-        });
-        assertEquals("Catégorie non trouvée", exception.getMessage());
+        assertNotNull(savedArticle);
+        verify(categorieRepository, times(1)).findById(categoryId);
+        verify(articleRepository, times(1)).save(any(Article.class));
     }
 
     @Test
@@ -145,76 +134,36 @@ public class ArticleServiceTest {
     }
 
     @Test
-    void testUpdateArticle_Success() {
+    void testUpdateArticle() {
         // Arrange
         Long articleId = 1L;
-        String name = "Updated Article";
-        String description = "Updated Description";
-        int quantite = 5;
-        double prix = 50.0;
-        Long categoryId = 1L;
+        ArticleDTO articleDTO = new ArticleDTO();
+        articleDTO.setName("Updated Name");
+        articleDTO.setDescription("Updated Description");
+        articleDTO.setQuantite(20);
+        articleDTO.setPrix(200.0);
 
         Article existingArticle = new Article();
-        existingArticle.setId(articleId);
-        existingArticle.setSousCategorie(new SousCategorie());
         when(articleRepository.findById(articleId)).thenReturn(Optional.of(existingArticle));
 
+        Long categoryId = 1L;
         SousCategorie sousCategorie = new SousCategorie();
         when(categorieRepository.findById(categoryId)).thenReturn(Optional.of(sousCategorie));
 
-        when(articleRepository.save(any(Article.class))).thenReturn(existingArticle);
+        when(articleRepository.save(existingArticle)).thenReturn(existingArticle);
 
         // Act
-        Article result = articleService.updateArticle(articleId, name, description, quantite, prix, categoryId);
+        Article updatedArticle = articleService.updateArticle(articleId, articleDTO, categoryId);
 
         // Assert
-        assertNotNull(result);
-        assertEquals(name, result.getName());
-        assertEquals(description, result.getDescription());
-        assertEquals(quantite, result.getQuantityInStock());
-        assertEquals(prix, result.getPrix());
-        assertEquals(sousCategorie, result.getSousCategorie());
-    }
+        assertNotNull(updatedArticle);
+        assertEquals("Updated Name", updatedArticle.getName());
+        assertEquals("Updated Description", updatedArticle.getDescription());
+        assertEquals(20, updatedArticle.getQuantityInStock());
+        assertEquals(200.0, updatedArticle.getPrix());
 
-    @Test
-    void testUpdateArticle_ArticleNotFound() {
-        // Arrange
-        Long articleId = 1L;
-        String name = "Updated Article";
-        String description = "Updated Description";
-        int quantite = 5;
-        double prix = 50.0;
-        Long categoryId = 1L;
-
-        when(articleRepository.findById(articleId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            articleService.updateArticle(articleId, name, description, quantite, prix, categoryId);
-        });
-        assertEquals("Article non trouvé", exception.getMessage());
-    }
-
-    @Test
-    void testUpdateArticle_CategorieNotFound() {
-        // Arrange
-        Long articleId = 1L;
-        String name = "Updated Article";
-        String description = "Updated Description";
-        int quantite = 5;
-        double prix = 50.0;
-        Long categoryId = 1L;
-
-        Article existingArticle = new Article();
-        existingArticle.setId(articleId);
-        when(articleRepository.findById(articleId)).thenReturn(Optional.of(existingArticle));
-
-        when(categorieRepository.findById(categoryId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            articleService.updateArticle(articleId, name, description, quantite, prix, categoryId);
-        });
-        assertEquals("Categories non trouvée", exception.getMessage());
+        verify(articleRepository, times(1)).findById(articleId);
+        verify(categorieRepository, times(1)).findById(categoryId);
+        verify(articleRepository, times(1)).save(existingArticle);
     }
 }

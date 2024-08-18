@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.model.Article;
 import com.doranco.site.model.SousCategorie;
 import com.doranco.site.repository.ArticleRepository;
@@ -33,12 +34,12 @@ public class ArticleService {
                 .orElseThrow(() -> new RuntimeException("Article non trouvé"));
     }
 
-    public Article saveArticle(String name, String description, int quantite, double prix, Long categoryId) {
+    public Article saveArticle(ArticleDTO articleDTO, Long categoryId) {
         Article article =  new Article();
-        article.setName(name);
-        article.setDescription(description);
-    	article.setQuantityInStock(quantite);
-    	article.setPrix(prix);
+        article.setName(articleDTO.getName());
+        article.setDescription(articleDTO.getDescription());
+    	article.setQuantityInStock(articleDTO.getQuantite());
+    	article.setPrix(articleDTO.getPrix());
     	
     	SousCategorie sousCategory = categorieRepository.findById(categoryId).orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));;
     	article.setSousCategorie(sousCategory);
@@ -49,14 +50,14 @@ public class ArticleService {
         articleRepository.deleteById(id);
     }
 
-    public Article updateArticle(Long id, String name, String description, int quantite, double prix, Long categoryId) {
+    public Article updateArticle(Long id, ArticleDTO articleDTO, Long categoryId) {
         Article existingArticle = articleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Article non trouvé"));
         
-        existingArticle.setName(name);
-        existingArticle.setDescription(description);
-        existingArticle.setPrix(prix);
-        existingArticle.setQuantityInStock(quantite);
+        existingArticle.setName(articleDTO.getName());
+        existingArticle.setDescription(articleDTO.getDescription());
+        existingArticle.setPrix(articleDTO.getPrix());
+        existingArticle.setQuantityInStock(articleDTO.getQuantite());
         
         if (categoryId != null) {
 			SousCategorie categorie = categorieRepository.findById(categoryId).orElseThrow(() -> new RuntimeException("Categories non trouvée"));

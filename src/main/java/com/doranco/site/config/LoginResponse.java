@@ -1,4 +1,4 @@
-package com.doranco.site.model;
+package com.doranco.site.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

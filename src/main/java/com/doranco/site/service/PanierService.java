@@ -11,7 +11,6 @@ import com.doranco.site.model.Utilisateur;
 import com.doranco.site.repository.ArticleRepository;
 import com.doranco.site.repository.PanierItemRepository;
 import com.doranco.site.repository.PanierRepository;
-import com.doranco.site.repository.UtilisateurRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -24,7 +23,6 @@ public class PanierService {
 	private final PanierRepository panierRepository;
 	private final PanierItemRepository panierItemRepository;
 	private final ArticleRepository articleRepository;
-	private final UtilisateurRepository userRepository;
 	
 	public Panier getPanier(Utilisateur user) {
 		return panierRepository.findByUser(user).orElseGet(() -> createPanier(user));
