@@ -19,4 +19,6 @@ public class InscriptionRequest {
 	private AdresseDTO adresseDTO;
 
     private String captchaToken;  
+    
+    private Boolean isAdmin;
 }

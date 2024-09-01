@@ -47,7 +47,7 @@ public class Adresse {
     private String ville;
     
     @NotBlank(message = "Le numéro de rue est requis")
-    @Pattern(regexp = "^\\d+[a-zA-Z]*$", message = "Le numéro de rue doit commencer par un ou plusieurs chiffres, suivi éventuellement d'une lettre")
+    @Pattern(regexp = "^\\d+[a-zA-Z]*$", message = "La rue doit commencer par un numero de un ou plusieurs chiffres, suivi éventuellement d'une lettre")
     @Column(name = "rue", nullable = false, length = 255)
     private String rue;
     

@@ -22,26 +22,31 @@ public class Article {
     private Long id;
 
     @NotBlank(message = "Le nom de l'article est obligatoire")
-    @Size(max = 100, message = "Le nom de l'article ne doit pas dépasser 100 caractères")
+    @Pattern(regexp = "^\\\\d+[a-zA-Z]*$", message = "Le nom de l'article ne doit pas dépasser 100 caractères et ne dois contenir que des lettres")
     @Column(name = "nom", nullable = false, length =100)
     private String name;
 
     @NotBlank(message = "La description est obligatoire")
-    @Size(max = 500, message = "La description ne doit pas dépasser 500 caractères")
-    @Column(name = "descripion", nullable = false, length = 100)
+    @Pattern(regexp = "^\\d{5}$", message = "La description ne doit pas dépasser 500 caractères et ne dois contenir que des lettres et des chiffres")
+    @Column(name = "descripion", nullable = false, length = 500)
     private String description;
 
     @NotNull(message = "Le prix est obligatoire")
-    @Min(value = 0, message = "Le prix doit être supérieur ou égal à 0")
+    @Pattern(regexp = "^\\d{5}$",message = "Le prix doit être supérieur ou égal à 0")
+    @Min(value = 0)
     @Column(name = "prix", nullable = false, length = 6)
     private double prix;
 
     @NotNull(message = "La quantité en stock est obligatoire")
-    @Min(value = 0, message = "La quantité en stock doit être supérieure ou égale à 0")
-    @Column(name = "quantite", nullable = false, length = 100)
+    @Min(value = 0)
+    @Pattern(regexp = "^\\d{5}$", message = "La quantité en stock doit être supérieure ou égale à 0")
+    @Column(name = "quantite", nullable = false, length = 6)
     private int quantityInStock;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sous_categorie_id")
     private SousCategorie sousCategorie;
+    
+    @Column(name = "image") 
+    private String image;
 }

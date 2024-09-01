@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.model.Article;
@@ -29,6 +30,9 @@ class ArticleServiceTest {
 
     @InjectMocks
     private ArticleService articleService;
+
+    @Mock
+    private MultipartFile mockImageFile;
 
     @BeforeEach
     void setUp() {
@@ -112,8 +116,11 @@ class ArticleServiceTest {
         Article article = new Article();
         when(articleRepository.save(any(Article.class))).thenReturn(article);
 
+        when(mockImageFile.isEmpty()).thenReturn(false);  // Simule qu'un fichier d'image est présent
+        when(mockImageFile.getOriginalFilename()).thenReturn("image.jpg");
+
         // Act
-        Article savedArticle = articleService.saveArticle(articleDTO, categoryId);
+        Article savedArticle = articleService.saveArticle(articleDTO, categoryId, mockImageFile);
 
         // Assert
         assertNotNull(savedArticle);
@@ -152,8 +159,11 @@ class ArticleServiceTest {
 
         when(articleRepository.save(existingArticle)).thenReturn(existingArticle);
 
+        when(mockImageFile.isEmpty()).thenReturn(false);  // Simule qu'un fichier d'image est présent
+        when(mockImageFile.getOriginalFilename()).thenReturn("image.jpg");
+
         // Act
-        Article updatedArticle = articleService.updateArticle(articleId, articleDTO, categoryId);
+        Article updatedArticle = articleService.updateArticle(articleId, articleDTO, categoryId, mockImageFile);
 
         // Assert
         assertNotNull(updatedArticle);

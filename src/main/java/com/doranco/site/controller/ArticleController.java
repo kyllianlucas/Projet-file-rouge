@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.model.Article;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequestMapping("/api/articles")
 @AllArgsConstructor
 public class ArticleController {
+
     private final ArticleService articleService;
 
     @GetMapping
@@ -30,7 +32,7 @@ public class ArticleController {
     public List<Article> getArticlesBySousCategorie(@PathVariable Long sousCategorieId) {
         return articleService.getArticlesBySousCategorie(sousCategorieId);
     }
-    
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Article> getArticleById(@PathVariable Long id) {
@@ -40,20 +42,29 @@ public class ArticleController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/creerArticle")
-    public ResponseEntity<Article> createArticle(@RequestBody ArticleDTO articleDTO, @RequestParam Long categoryId ) {
-        Article newArticle = articleService.saveArticle(articleDTO, categoryId);
+    public ResponseEntity<Article> createArticle(
+            @RequestPart("article") ArticleDTO articleDTO,
+            @RequestParam Long categoryId,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        Article newArticle = articleService.saveArticle(articleDTO, categoryId, image);
         return new ResponseEntity<>(newArticle, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/majArticle")
-    public ResponseEntity<Article> updateArticle(@PathVariable Long id,@RequestBody ArticleDTO articleDTO, @RequestParam(required = false) Long categoryId) {
-        Article updatedArticle = articleService.updateArticle(id, articleDTO, categoryId);
+    @PutMapping("/majArticle/{id}")
+    public ResponseEntity<Article> updateArticle(
+            @PathVariable Long id,
+            @RequestPart("article") ArticleDTO articleDTO,
+            @RequestParam(required = false) Long categoryId,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        Article updatedArticle = articleService.updateArticle(id, articleDTO, categoryId, image);
         return new ResponseEntity<>(updatedArticle, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/supprimerArticle")
+    @DeleteMapping("/supprimerArticle/{id}")
     public ResponseEntity<Void> deleteArticle(@PathVariable Long id) {
         articleService.deleteArticle(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

@@ -10,22 +10,27 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import com.doranco.site.service.UserInfoService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-	@Autowired
-	private UserInfoService userDetail;	
-	
+    
+    @Autowired
+    private UserInfoService userDetail;
+
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -46,6 +51,8 @@ public class SecurityConfig {
                 .requestMatchers("/user/**").hasAnyRole("USER")
                 .anyRequest().authenticated()
             )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Utilisation de session stateless
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class) // Ajout du filtre JWT
             .formLogin(AbstractHttpConfigurer::disable) // Désactiver la page de login par défaut
             .logout(logout -> logout
                 .logoutUrl("/api/users/logout")
@@ -55,6 +62,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .csrf(AbstractHttpConfigurer::disable); // Désactiver CSRF pour les appels API REST
+
         return http.build();
     }
 
@@ -68,9 +76,9 @@ public class SecurityConfig {
     
     @Bean
     public AuthenticationProvider provider() {
-	     DaoAuthenticationProvider daoAuthProvider = new DaoAuthenticationProvider();
-	    daoAuthProvider.setUserDetailsService(userDetail);
-	    daoAuthProvider.setPasswordEncoder(passwordEncoder());
-	    return daoAuthProvider;
-     }
+        DaoAuthenticationProvider daoAuthProvider = new DaoAuthenticationProvider();
+        daoAuthProvider.setUserDetailsService(userDetail);
+        daoAuthProvider.setPasswordEncoder(passwordEncoder());
+        return daoAuthProvider;
+    }
 }

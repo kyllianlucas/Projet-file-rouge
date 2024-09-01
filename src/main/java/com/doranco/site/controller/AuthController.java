@@ -28,57 +28,60 @@ import com.doranco.site.service.JwtService;
 
 import lombok.AllArgsConstructor;
 
+/**
+ * Contrôleur responsable de la gestion des opérations liées à l'authentification et à la gestion des utilisateurs.
+ */
 @RestController
 @RequestMapping("/api/users")
 @AllArgsConstructor
 public class AuthController {
-	
-	@Autowired
-	private JwtService jwtService;
-	
-	@Autowired
-	private AuthenticationManager authenticationManager;
-	
-	private final AuthService authService;
+    
+    @Autowired
+    private JwtService jwtService;
+    
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    
+    private final AuthService authService;
     private final CaptchaService captchaService;
 
-
-	/**
-	 * Inscrit un nouvel utilisateur avec les données fournies dans la requête.
-	 *
-	 * @param demandeInscription les données d'inscription de l'utilisateur et de son adresse.
-	 * @return une réponse HTTP avec l'objet {@link Utilisateur} inscrit et un statut 201 Created.
-	 * @throws EmailException si un utilisateur avec le même email existe déjà.
-	 */
     @PostMapping("/register")
     public ResponseEntity<Utilisateur> registerUser(@RequestBody InscriptionRequest request) throws EmailException {
-    	String captchaToken = request.getCaptchaToken();  // Assurez-vous que le token CAPTCHA est inclus dans la requête
+        String captchaToken = request.getCaptchaToken();
         if (!captchaService.verifyCaptcha(captchaToken)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }    	
-    	UtilisateurDTO utilisateurDTO = request.getUtilisateurDTO();
-		AdresseDTO adresseDTO = request.getAdresseDTO();
-		Utilisateur registeredUser = authService.registerUser(utilisateurDTO, adresseDTO);
-               
+        }
+        UtilisateurDTO utilisateurDTO = request.getUtilisateurDTO();
+        AdresseDTO adresseDTO = request.getAdresseDTO();
+        Utilisateur registeredUser = authService.registerUser(utilisateurDTO, adresseDTO);
         return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public JwtResponseDTO AuthenticateAndGetToken(@RequestBody AuthRequestDTO authRequestDTO){
-		 Authentication authentication = authenticationManager.authenticate(new
-		UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(),
-		authRequestDTO.getPassword()));
-		 if(authentication.isAuthenticated()){
-			 return JwtResponseDTO
-			 .builder()
-			 .accessToken(jwtService.GenerateToken(authRequestDTO.getEmail()))
-			 .build();
-		 } else {
-			 throw new UsernameNotFoundException("invalid user request..!!");
-		 }
-	}
+    public JwtResponseDTO authenticateAndGetToken(@RequestBody AuthRequestDTO authRequestDTO) {
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(), authRequestDTO.getPassword())
+        );
+        
+        if (authentication.isAuthenticated()) {
+            // Récupérer les détails de l'utilisateur authentifié
+            Utilisateur utilisateur = (Utilisateur) authentication.getPrincipal();
 
-    @PutMapping("/{userId}")
+            // Générer le token JWT
+            String token = jwtService.GenerateToken(authRequestDTO.getEmail());
+
+            // Retourner le token avec une indication si l'utilisateur est admin ou non
+            return JwtResponseDTO.builder()
+                .accessToken(token)
+                .isAdmin(utilisateur.isAdmin()) // Ajouter le rôle admin à la réponse
+                .build();
+        } else {
+            throw new UsernameNotFoundException("Invalid user request.");
+        }
+    }
+
+
+    @PutMapping("/update/{userId}")
     public ResponseEntity<Utilisateur> updateUser(@PathVariable Long userId, @RequestBody Utilisateur updatedUser) {
         Utilisateur user = authService.updateUser(userId, updatedUser);
         return new ResponseEntity<>(user, HttpStatus.OK);
@@ -86,7 +89,7 @@ public class AuthController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword) {
-    	authService.resetPassword(email, newPassword);
+        authService.resetPassword(email, newPassword);
         return new ResponseEntity<>("Mot de passe réinitialisé avec succès", HttpStatus.OK);
     }
 }
