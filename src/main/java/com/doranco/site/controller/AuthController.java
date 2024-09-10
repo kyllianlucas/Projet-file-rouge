@@ -3,6 +3,7 @@ package com.doranco.site.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -46,16 +47,29 @@ public class AuthController {
     private final CaptchaService captchaService;
 
     @PostMapping("/register")
-    public ResponseEntity<Utilisateur> registerUser(@RequestBody InscriptionRequest request) throws EmailException {
+    public ResponseEntity<JwtResponseDTO> registerUser(@RequestBody InscriptionRequest request) throws EmailException {
         String captchaToken = request.getCaptchaToken();
         if (!captchaService.verifyCaptcha(captchaToken)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        
+        // Enregistrer l'utilisateur
         UtilisateurDTO utilisateurDTO = request.getUtilisateurDTO();
         AdresseDTO adresseDTO = request.getAdresseDTO();
         Utilisateur registeredUser = authService.registerUser(utilisateurDTO, adresseDTO);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        
+        // Générer le token JWT pour l'utilisateur enregistré
+        boolean isAdmin = registeredUser.isAdmin(); // Vérifiez si l'utilisateur est admin
+        String token = jwtService.GenerateToken(registeredUser.getEmail(), isAdmin);
+        
+        // Retourner le token et les informations de l'utilisateur
+        JwtResponseDTO jwtResponse = JwtResponseDTO.builder()
+            .accessToken(token)
+            .build();
+        
+        return new ResponseEntity<>(jwtResponse, HttpStatus.CREATED);
     }
+
 
     @PostMapping("/login")
     public JwtResponseDTO authenticateAndGetToken(@RequestBody AuthRequestDTO authRequestDTO) {
@@ -67,13 +81,12 @@ public class AuthController {
             // Récupérer les détails de l'utilisateur authentifié
             Utilisateur utilisateur = (Utilisateur) authentication.getPrincipal();
 
-            // Générer le token JWT
-            String token = jwtService.GenerateToken(authRequestDTO.getEmail());
+			// Générer le token JWT
+            String token = jwtService.GenerateToken(authRequestDTO.getEmail(), utilisateur.isAdmin());
 
             // Retourner le token avec une indication si l'utilisateur est admin ou non
             return JwtResponseDTO.builder()
                 .accessToken(token)
-                .isAdmin(utilisateur.isAdmin()) // Ajouter le rôle admin à la réponse
                 .build();
         } else {
             throw new UsernameNotFoundException("Invalid user request.");
@@ -81,11 +94,18 @@ public class AuthController {
     }
 
 
-    @PutMapping("/update/{userId}")
-    public ResponseEntity<Utilisateur> updateUser(@PathVariable Long userId, @RequestBody Utilisateur updatedUser) {
+    @PutMapping("/update")
+    public ResponseEntity<Utilisateur> updateUser(@RequestBody Utilisateur updatedUser, Authentication authentication) {
+        // Récupérer l'utilisateur authentifié à partir du principal
+        Utilisateur utilisateurAuthentifie = (Utilisateur) authentication.getPrincipal();
+
+        // Utiliser l'ID de l'utilisateur authentifié
+        Long userId = utilisateurAuthentifie.getId();
+        
         Utilisateur user = authService.updateUser(userId, updatedUser);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
+
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword) {

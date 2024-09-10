@@ -11,10 +11,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "articles")
 public class Article {
     @Id
@@ -41,7 +46,11 @@ public class Article {
     @Min(value = 0)
     @Pattern(regexp = "^\\d{5}$", message = "La quantité en stock doit être supérieure ou égale à 0")
     @Column(name = "quantite", nullable = false, length = 6)
-    private int quantityInStock;
+    private int quantite;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categorie_id")
+    private Categorie categorie;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sous_categorie_id")

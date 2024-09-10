@@ -1,7 +1,5 @@
 package com.doranco.site.dto;
 
-import org.springframework.web.bind.annotation.RequestParam;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +15,8 @@ public class ArticleDTO {
 	private String description;
 	private int quantite;
 	private double prix;
-	
+	private String categorieName;
+	private String sousCategorieName;
+	private String taille;  // S, M, L, etc.
+    private String genre;   // Homme, Femme, Enfant
 }

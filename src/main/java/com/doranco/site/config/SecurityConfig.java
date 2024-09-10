@@ -24,16 +24,16 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    
+
     @Autowired
     private UserInfoService userDetail;
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // Utilise BCrypt pour encoder les mots de passe
     }
 
     @Bean
@@ -44,24 +44,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(AbstractHttpConfigurer::disable) // Désactiver CSRF pour une API stateless
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/articles/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/user/**").hasAnyRole("USER")
-                .anyRequest().authenticated()
+                .requestMatchers("/api/users/register", "/api/users/login").permitAll() // Ces endpoints sont accessibles sans authentification
+                .requestMatchers("/api/users/update").hasAnyRole("USER", "ADMIN") // Accessible par USER et ADMIN
+                .requestMatchers("/api/users/articles/**").hasRole("USER") // Accessible uniquement par USER
+                .requestMatchers("/api/users/articles/admin/**").hasAuthority("ROLE_ADMIN") // Accessible uniquement par ADMIN
+                .anyRequest().authenticated() // Toute autre requête doit être authentifiée
             )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Utilisation de session stateless
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class) // Ajout du filtre JWT
-            .formLogin(AbstractHttpConfigurer::disable) // Désactiver la page de login par défaut
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Gérer les sessions en mode stateless
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class) // Ajouter le filtre JWT avant le filtre d'authentification
+            .formLogin(AbstractHttpConfigurer::disable) // Désactiver l'authentification par formulaire
             .logout(logout -> logout
                 .logoutUrl("/api/users/logout")
                 .logoutSuccessHandler(logoutSuccessHandler())
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
-            )
-            .csrf(AbstractHttpConfigurer::disable); // Désactiver CSRF pour les appels API REST
+            );
 
         return http.build();
     }
@@ -73,12 +73,12 @@ public class SecurityConfig {
             response.getWriter().flush();
         };
     }
-    
+
     @Bean
-    public AuthenticationProvider provider() {
-        DaoAuthenticationProvider daoAuthProvider = new DaoAuthenticationProvider();
-        daoAuthProvider.setUserDetailsService(userDetail);
-        daoAuthProvider.setPasswordEncoder(passwordEncoder());
-        return daoAuthProvider;
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetail);
+        provider.setPasswordEncoder(passwordEncoder()); // Utilise BCrypt pour l'encodage des mots de passe
+        return provider;
     }
 }

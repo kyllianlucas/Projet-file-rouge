@@ -4,12 +4,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +21,12 @@ import lombok.Setter;
 @Setter
 public class SousCategorie extends BaseCategorie {
 
+	@Column(name = "taille", nullable = true)
+    private String taille;
+
+    @Column(name = "genre", nullable = true)
+    private String genre;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categorie_id")
     private Categorie categorie;

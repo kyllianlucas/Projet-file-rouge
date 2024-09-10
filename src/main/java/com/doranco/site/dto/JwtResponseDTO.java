@@ -7,6 +7,5 @@ import lombok.NoArgsConstructor;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class JwtResponseDTO {
 	private String accessToken;
-	private boolean isAdmin;
 }
 

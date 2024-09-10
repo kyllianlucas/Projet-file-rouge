@@ -11,6 +11,11 @@ spring:
   username: root
   password: supersecret
   driverClassName: com.mysql.cj.jdbc.Driver
+ servlet:
+   multipart:
+    enabled: true         # Active le multipart
+    max-file-size: 10MB    # Taille max du fichier
+    max-request-size: 10MB # Taille max de la requête multipart
 jwt:
-  secret: your_secret_key
-  expiration: 3600
+   secret: remplacezparvotreclebase64generee  # Remplacez par votre clé publique en base64
+   expiration: 1200  # Durée d'expiration en secondes (20 minutes)

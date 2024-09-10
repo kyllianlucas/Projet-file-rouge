@@ -20,5 +20,4 @@ public class InscriptionRequest {
 
     private String captchaToken;  
     
-    private Boolean isAdmin;
 }

@@ -6,14 +6,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.model.Article;
+import com.doranco.site.model.Categorie;
 import com.doranco.site.model.SousCategorie;
 import com.doranco.site.repository.ArticleRepository;
 import com.doranco.site.repository.CategorieRepository;
+import com.doranco.site.repository.SousCategorieRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -23,8 +26,14 @@ import lombok.AllArgsConstructor;
 @Transactional
 public class ArticleService {
 
-    private final ArticleRepository articleRepository;
-    private final CategorieRepository categorieRepository;
+	@Autowired
+    private ArticleRepository articleRepository;
+
+    @Autowired
+    private CategorieRepository categorieRepository;
+
+    @Autowired
+    private SousCategorieRepository sousCategorieRepository;
 
     public List<Article> getAllArticles() {
         return articleRepository.findAll();
@@ -39,24 +48,39 @@ public class ArticleService {
                 .orElseThrow(() -> new RuntimeException("Article non trouvé"));
     }
 
-    public Article saveArticle(ArticleDTO articleDTO, Long categoryId, MultipartFile imageFile) {
+    public Article saveArticle(ArticleDTO articleDTO) {
+        // Crée un nouvel article à partir du DTO
         Article article = new Article();
         article.setName(articleDTO.getName());
         article.setDescription(articleDTO.getDescription());
-        article.setQuantityInStock(articleDTO.getQuantite());
+        article.setQuantite(articleDTO.getQuantite());
         article.setPrix(articleDTO.getPrix());
 
-        if (categoryId != null) {
-            SousCategorie sousCategory = categorieRepository.findById(categoryId)
+        // Recherche la catégorie par son nom (si présente)
+        if (articleDTO.getCategorieName() != null) {
+            Categorie category = categorieRepository.findByName(articleDTO.getCategorieName())
                     .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
-            article.setSousCategorie(sousCategory);
+
+            // Associe la catégorie à l'article
+            article.setCategorie(category);
+
+            // Si la catégorie est "Tee-shirt", on recherche la sous-catégorie
+            if ("Tee-shirt".equalsIgnoreCase(articleDTO.getCategorieName()) && articleDTO.getSousCategorieName() != null) {
+                // Recherche la sous-catégorie par son nom et catégorie
+                SousCategorie sousCategory = sousCategorieRepository.findByNameAndCategorie(
+                        articleDTO.getSousCategorieName(), category)
+                        .orElseThrow(() -> new RuntimeException("Sous-catégorie non trouvée"));
+
+                // On ajoute les attributs supplémentaires à la sous-catégorie (taille et genre)
+                sousCategory.setTaille(articleDTO.getTaille());
+                sousCategory.setGenre(articleDTO.getGenre());
+
+                // Associe la sous-catégorie à l'article
+                article.setSousCategorie(sousCategory);
+            }
         }
 
-        if (imageFile != null && !imageFile.isEmpty()) {
-            String imagePath = saveImage(imageFile);
-            article.setImage(imagePath);
-        }
-
+        // Sauvegarde l'article dans le repository
         return articleRepository.save(article);
     }
 
@@ -67,10 +91,10 @@ public class ArticleService {
         existingArticle.setName(articleDTO.getName());
         existingArticle.setDescription(articleDTO.getDescription());
         existingArticle.setPrix(articleDTO.getPrix());
-        existingArticle.setQuantityInStock(articleDTO.getQuantite());
+        existingArticle.setQuantite(articleDTO.getQuantite());
 
         if (categoryId != null) {
-            SousCategorie categorie = categorieRepository.findById(categoryId)
+            Categorie categorie = categorieRepository.findById(categoryId)
                     .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
             existingArticle.setSousCategorie(categorie);
         }

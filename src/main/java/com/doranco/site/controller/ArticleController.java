@@ -15,7 +15,7 @@ import lombok.AllArgsConstructor;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/articles")
+@RequestMapping("/api/users/articles")
 @AllArgsConstructor
 public class ArticleController {
 
@@ -41,30 +41,27 @@ public class ArticleController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/creerArticle")
+    @PostMapping("admin/creerArticle")
     public ResponseEntity<Article> createArticle(
-            @RequestPart("article") ArticleDTO articleDTO,
-            @RequestParam Long categoryId,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestPart("article") ArticleDTO articleDTO
     ) {
-        Article newArticle = articleService.saveArticle(articleDTO, categoryId, image);
+        Article newArticle = articleService.saveArticle(articleDTO);
         return new ResponseEntity<>(newArticle, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/majArticle/{id}")
+    @PutMapping("/admin/majArticle/{id}")
     public ResponseEntity<Article> updateArticle(
             @PathVariable Long id,
             @RequestPart("article") ArticleDTO articleDTO,
-            @RequestParam(required = false) Long categoryId,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestParam(required = false) Long categoryId
     ) {
-        Article updatedArticle = articleService.updateArticle(id, articleDTO, categoryId, image);
+        Article updatedArticle = articleService.updateArticle(id, articleDTO);
         return new ResponseEntity<>(updatedArticle, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/supprimerArticle/{id}")
+    @DeleteMapping("/admin/supprimerArticle/{id}")
     public ResponseEntity<Void> deleteArticle(@PathVariable Long id) {
         articleService.deleteArticle(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
