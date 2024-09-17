@@ -1,13 +1,13 @@
 package com.doranco.site.repository;
 
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.doranco.site.model.Categorie;
 
-public interface CategorieRepository extends JpaRepository<Categorie, Long>{
+@Repository
+public interface CategorieRepository extends JpaRepository<Categorie, Long> {
 
-	Optional<Categorie> findByName(String categorieName);
+	Categorie findByCategoryName(String categoryName);
 
 }

@@ -11,12 +11,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ArticleDTO {
 
-	private String name;
+	private Long articleId;
+	private String nomProduit;
+	private String image;
 	private String description;
-	private int quantite;
+	private Integer quantite;
 	private double prix;
-	private String categorieName;
-	private String sousCategorieName;
-	private String taille;  // S, M, L, etc.
-    private String genre;   // Homme, Femme, Enfant
+	private double reduction;
+	private double prixSpecial;
 }

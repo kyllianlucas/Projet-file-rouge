@@ -1,33 +1,24 @@
 package com.doranco.site.service;
 
-import java.util.Date;
+import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.doranco.site.model.Commande;
-import com.doranco.site.model.Item;
-import com.doranco.site.model.Panier;
-import com.doranco.site.repository.CommandeRepository;
+import com.doranco.site.dto.CommandeDTO;
+import com.doranco.site.dto.CommandeReponse;
 
 @Service
-public class CommandeService {
+public interface CommandeService {
 
-    @Autowired
-    private CommandeRepository commandeRepository;
+		
+		CommandeDTO passerCommande(String emailId, Long panierId, String méthodePaiement);
+		
+		CommandeDTO obtenirCommande(String emailId, Long commandeId);
+		
+		List<CommandeDTO> obtenirCommandesParUtilisateur(String emailId);
+		
+		CommandeReponse obtenirToutesLesCommandes(Integer numéroPage, Integer taillePage, String trierPar, String ordreTri);
+		
+		CommandeDTO mettreÀJourCommande(String emailId, Long commandeId, String statutCommande);
+	}
 
-    public Commande createCommandeFromPanier(Panier panier) {
-        Commande commande = new Commande();
-        commande.setDateCommande(new Date());
-
-        for (Item panierItem : panier.getItems()) {
-            Item commandeItem = new Item();
-            commandeItem.setArticle(panierItem.getArticle());
-            commandeItem.setQuantity(panierItem.getQuantity());
-            commandeItem.setCommande(commande);
-            commande.getItems().add(commandeItem);
-        }
-
-        return commandeRepository.save(commande);
-    }
-}

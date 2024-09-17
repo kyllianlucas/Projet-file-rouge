@@ -1,42 +1,52 @@
 package com.doranco.site.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
-
+import com.doranco.site.dto.*;
+import com.doranco.site.exception.APIException;
+import com.doranco.site.exception.ResourceNotFoundException;
+import com.doranco.site.model.*;
+import com.doranco.site.repository.AdresseRepository;
+import com.doranco.site.repository.RoleRepository;
+import com.doranco.site.repository.UtilisateurRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.doranco.site.dto.AdresseDTO;
-import com.doranco.site.dto.UtilisateurDTO;
-import com.doranco.site.exception.EmailException;
-import com.doranco.site.exception.UserNotFoundException;
-import com.doranco.site.model.Utilisateur;
-import com.doranco.site.repository.UtilisateurRepository;
+import java.util.*;
+import java.util.stream.Collectors;
 
-class AuthServiceTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class UserServiceImplTest {
+
+    @InjectMocks
+    private UserServiceImpl userService;
 
     @Mock
-    private UtilisateurRepository userRepository;
+    private UtilisateurRepository userRepo;
+
+    @Mock
+    private RoleRepository roleRepo;
+
+    @Mock
+    private AdresseRepository addressRepo;
+
+    @Mock
+    private PanierService cartService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @InjectMocks
-    private AuthService authService;
+    @Mock
+    private ModelMapper modelMapper;
 
     @BeforeEach
     void setUp() {
@@ -44,130 +54,149 @@ class AuthServiceTest {
     }
 
     @Test
-    void testRegisterUser_Success() throws EmailException {
+    void testEnregistrerUtilisateurSuccess() {
+        // Arrange
         UtilisateurDTO utilisateurDTO = new UtilisateurDTO();
-        utilisateurDTO.setNom("John");
-        utilisateurDTO.setPrenom("Doe");
-        utilisateurDTO.setEmail("johndoe@example.com");
-        utilisateurDTO.setPassword("password");
-        utilisateurDTO.setTelephone("123456789");
+        utilisateurDTO.setEmail("test@example.com");
+        utilisateurDTO.setAdresse(new AdresseDTO("France", "Paris", "75001", "Rue de Rivoli", "Bâtiment A"));
 
-        AdresseDTO adresseDTO = new AdresseDTO();
-        adresseDTO.setCodePostal("75001");
-        adresseDTO.setPays("France");
-        adresseDTO.setRue("123 rue de Paris");
-        adresseDTO.setVille("Paris");
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setAdresses(new ArrayList<>());
 
-        when(userRepository.findByEmail("johndoe@example.com")).thenReturn(null);
-        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+        Adresse adresse = new Adresse("France", "Paris", "75001", "Rue de Rivoli", "Bâtiment A");
+        Panier panier = new Panier();
 
-        Utilisateur result = authService.registerUser(utilisateurDTO, adresseDTO);
+        when(modelMapper.map(any(UtilisateurDTO.class), eq(Utilisateur.class))).thenReturn(utilisateur);
+        when(roleRepo.findById(anyLong())).thenReturn(Optional.of(new Role()));
+        when(addressRepo.findByCountryAndCityAndPincodeAndStreetAndBuildingName(anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(adresse);
+        when(userRepo.save(any(Utilisateur.class))).thenReturn(utilisateur);
+        when(modelMapper.map(any(Utilisateur.class), eq(UtilisateurDTO.class))).thenReturn(utilisateurDTO);
 
+        // Act
+        UtilisateurDTO result = userService.enregistrerUtilisateur(utilisateurDTO);
+
+        // Assert
         assertNotNull(result);
-        assertEquals("John", result.getNom());
-        assertEquals("Doe", result.getPrenom());
-        assertEquals("johndoe@example.com", result.getEmail());
-        assertEquals("encodedPassword", result.getPassword());
-        verify(userRepository, times(1)).save(result);
+        assertEquals("test@example.com", result.getEmail());
     }
 
     @Test
-    void testRegisterUser_EmailAlreadyExists() {
+    void testEnregistrerUtilisateurThrowsException() {
+        // Arrange
         UtilisateurDTO utilisateurDTO = new UtilisateurDTO();
-        utilisateurDTO.setEmail("johndoe@example.com");
+        utilisateurDTO.setEmail("test@example.com");
 
-        Utilisateur existingUser = new Utilisateur();
-        when(userRepository.findByEmail("johndoe@example.com")).thenReturn(existingUser);
+        when(modelMapper.map(any(UtilisateurDTO.class), eq(Utilisateur.class))).thenThrow(new DataIntegrityViolationException(""));
 
-        assertThrows(EmailException.class, () -> {
-            authService.registerUser(utilisateurDTO, new AdresseDTO());
+        // Act & Assert
+        APIException thrown = assertThrows(APIException.class, () -> {
+            userService.enregistrerUtilisateur(utilisateurDTO);
         });
-
-        verify(userRepository, never()).save(any(Utilisateur.class));
+        assertEquals("Utilisateur déjà existant avec l'email : test@example.com", thrown.getMessage());
     }
 
     @Test
-    void testUpdateUser_Success() {
-        Long userId = 1L;
-        Utilisateur existingUser = new Utilisateur();
-        existingUser.setId(userId);
-        existingUser.setNom("John");
+    void testObtenirTousLesUtilisateurs() {
+        // Arrange
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setIdUtilisateur(1L);
+        Adresse adresse = new Adresse();
+        adresse.setIdAdresse(1L);
+        utilisateur.setAdresses(Collections.singletonList(adresse));
 
-        Utilisateur updatedUser = new Utilisateur();
-        updatedUser.setNom("Jane");
+        Panier panier = new Panier();
+        panier.setPanierId(1L);
+        utilisateur.setPanier(panier);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(existingUser)).thenReturn(existingUser);
+        List<Utilisateur> utilisateurs = Collections.singletonList(utilisateur);
 
-        Utilisateur result = authService.updateUser(userId, updatedUser);
+        // Mock des méthodes findAll et map
+        when(userRepo.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(utilisateurs));
 
-        assertEquals("Jane", result.getNom());
-        verify(userRepository, times(1)).save(existingUser);
+        // Initialisez le PanierDTO dans le UtilisateurDTO retourné par ModelMapper
+        PanierDTO panierDTO = new PanierDTO();  // Initialisez ici le PanierDTO
+        UtilisateurDTO utilisateurDTO = new UtilisateurDTO();
+        utilisateurDTO.setUtilisateurId(1L);
+        utilisateurDTO.setPanier(panierDTO);  // Affectez PanierDTO
+
+        when(modelMapper.map(any(Utilisateur.class), eq(UtilisateurDTO.class))).thenReturn(utilisateurDTO);
+
+        // Act
+        UtilisateurReponse response = userService.obtenirTousLesUtilisateurs(0, 10, "nom", "asc");
+
+        // Assert
+        assertNotNull(response);
+        assertFalse(response.getContenu().isEmpty());
+
+        // Ajoutez des assertions pour vérifier que PanierDTO n'est pas null
+        UtilisateurDTO dto = response.getContenu().get(0);
+        assertNotNull(dto.getPanier());  // Vérifie que PanierDTO n'est pas null
+    }
+
+
+    @Test
+    void testObtenirUtilisateurParId() {
+        // Arrange
+        Long utilisateurId = 1L;
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setAdresses(Collections.singletonList(new Adresse()));
+        utilisateur.setPanier(new Panier());
+
+        when(userRepo.findById(utilisateurId)).thenReturn(Optional.of(utilisateur));
+        when(modelMapper.map(any(Utilisateur.class), eq(UtilisateurDTO.class))).thenReturn(new UtilisateurDTO());
+
+        // Act
+        UtilisateurDTO result = userService.obtenirUtilisateurParId(utilisateurId);
+
+        // Assert
+        assertNotNull(result);
     }
 
     @Test
-    void testUpdateUser_UserNotFound() {
-        Long userId = 1L;
-        Utilisateur updatedUser = new Utilisateur();
+    void testMettreAJourUtilisateur() {
+        // Arrange
+        Long utilisateurId = 1L;
+        UtilisateurDTO utilisateurDTO = new UtilisateurDTO();
+        utilisateurDTO.setMotDePasse("newpassword");
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setAdresses(Collections.singletonList(new Adresse()));
 
-        assertThrows(UserNotFoundException.class, () -> {
-            authService.updateUser(userId, updatedUser);
-        });
+        // Initialisation explicite du panier
+        Panier panier = new Panier();
+        utilisateur.setPanier(panier);
 
-        verify(userRepository, never()).save(any(Utilisateur.class));
+        // Mocks
+        when(userRepo.findById(utilisateurId)).thenReturn(Optional.of(utilisateur));
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedpassword");
+        when(userRepo.save(any(Utilisateur.class))).thenReturn(utilisateur);
+        when(modelMapper.map(any(Utilisateur.class), eq(UtilisateurDTO.class))).thenReturn(utilisateurDTO);
+
+        // Act
+        UtilisateurDTO result = userService.mettreAJourUtilisateur(utilisateurId, utilisateurDTO);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("encodedpassword", utilisateur.getMotDePasse());
+        assertNotNull(utilisateur.getPanier());  // Vérification que le panier n'est pas null
     }
 
-    @Test
-    void testResetPassword_Success() {
-        String email = "johndoe@example.com";
-        String newPassword = "newPassword";
-        Utilisateur existingUser = new Utilisateur();
-        existingUser.setEmail(email);
-
-        when(userRepository.findByEmail(email)).thenReturn(existingUser);
-        when(passwordEncoder.encode(newPassword)).thenReturn("encodedNewPassword");
-
-        authService.resetPassword(email, newPassword);
-
-        assertEquals("encodedNewPassword", existingUser.getPassword());
-        verify(userRepository, times(1)).save(existingUser);
-    }
 
     @Test
-    void testResetPassword_UserNotFound() {
-        String email = "johndoe@example.com";
-        when(userRepository.findByEmail(email)).thenReturn(null);
+    void testSupprimerUtilisateur() {
+        // Arrange
+        Long utilisateurId = 1L;
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setPanier(new Panier());
 
-        assertThrows(UsernameNotFoundException.class, () -> {
-            authService.resetPassword(email, "newPassword");
-        });
+        when(userRepo.findById(utilisateurId)).thenReturn(Optional.of(utilisateur));
+        doNothing().when(userRepo).delete(any(Utilisateur.class));
 
-        verify(userRepository, never()).save(any(Utilisateur.class));
-    }
+        // Act
+        String result = userService.supprimerUtilisateur(utilisateurId);
 
-    @Test
-    void testLoadUserByUsername_UserFound() {
-        String email = "johndoe@example.com";
-        Utilisateur existingUser = new Utilisateur();
-        existingUser.setEmail(email);
-
-        when(userRepository.findByEmail(email)).thenReturn(existingUser);
-
-        UserDetails userDetails = authService.loadUserByUsername(email);
-
-        assertNotNull(userDetails);
-        assertEquals(email, userDetails.getUsername());
-    }
-
-    @Test
-    void testLoadUserByUsername_UserNotFound() {
-        String email = "johndoe@example.com";
-        when(userRepository.findByEmail(email)).thenReturn(null);
-
-        assertThrows(UsernameNotFoundException.class, () -> {
-            authService.loadUserByUsername(email);
-        });
+        // Assert
+        assertEquals("Utilisateur avec l'identifiant 1 supprimé avec succès !!!", result);
     }
 }
+

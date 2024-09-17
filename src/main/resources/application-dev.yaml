@@ -17,5 +17,8 @@ spring:
     max-file-size: 10MB    # Taille max du fichier
     max-request-size: 10MB # Taille max de la requête multipart
 jwt:
+   header: Authorization
    secret: remplacezparvotreclebase64generee  # Remplacez par votre clé publique en base64
-   expiration: 1200  # Durée d'expiration en secondes (20 minutes)
+   expiration: 1200000   # Durée d'expiration en milisecondes (20 minutes)
+project:
+  image: images/

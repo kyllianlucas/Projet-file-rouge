@@ -1,69 +1,104 @@
 package com.doranco.site.controller;
 
+import java.io.IOException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import com.doranco.site.config.AppConfig;
 import com.doranco.site.dto.ArticleDTO;
+import com.doranco.site.dto.ArticleReponse;
+import com.doranco.site.dto.ArticleRequest;
 import com.doranco.site.model.Article;
 import com.doranco.site.service.ArticleService;
 
-import lombok.AllArgsConstructor;
-
-import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/users/articles")
-@AllArgsConstructor
+@RequestMapping("/api")
 public class ArticleController {
 
-    private final ArticleService articleService;
+	@Autowired
+	private ArticleService produitService;
 
-    @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public List<Article> getAllArticles() {
-        return articleService.getAllArticles();
-    }
+	@PostMapping("/admin/produit/cree")
+	public ResponseEntity<ArticleDTO> ajouterProduit(@Valid @RequestBody ArticleRequest articleRequest) {
 
-    @GetMapping("/bySousCategorie/{sousCategorieId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public List<Article> getArticlesBySousCategorie(@PathVariable Long sousCategorieId) {
-        return articleService.getArticlesBySousCategorie(sousCategorieId);
-    }
+		ArticleDTO articleEnregistre = produitService.ajouterArticle(articleRequest.getCategorieNom(), articleRequest.getArticle());
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Article> getArticleById(@PathVariable Long id) {
-        Article article = articleService.getArticleById(id);
-        return new ResponseEntity<>(article, HttpStatus.OK);
-    }
+		return new ResponseEntity<ArticleDTO>(articleEnregistre, HttpStatus.CREATED);
+	}
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("admin/creerArticle")
-    public ResponseEntity<Article> createArticle(
-            @RequestPart("article") ArticleDTO articleDTO
-    ) {
-        Article newArticle = articleService.saveArticle(articleDTO);
-        return new ResponseEntity<>(newArticle, HttpStatus.CREATED);
-    }
+	@GetMapping("/public/produits")
+	public ResponseEntity<ArticleReponse> obtenirTousLesProduits(
+			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
+			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
+			@RequestParam(name = "trierPar", defaultValue = AppConfig.TRIER_ARTICLE_PAR, required = false) String trierPar,
+			@RequestParam(name = "ordreTri", defaultValue = AppConfig.ORDONNER_PAR, required = false) String ordreTri) {
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/admin/majArticle/{id}")
-    public ResponseEntity<Article> updateArticle(
-            @PathVariable Long id,
-            @RequestPart("article") ArticleDTO articleDTO,
-            @RequestParam(required = false) Long categoryId
-    ) {
-        Article updatedArticle = articleService.updateArticle(id, articleDTO);
-        return new ResponseEntity<>(updatedArticle, HttpStatus.OK);
-    }
+		ArticleReponse reponseArticle = produitService.obtenirTousLesArticles(numeroPage, taillePage, trierPar, ordreTri);
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/admin/supprimerArticle/{id}")
-    public ResponseEntity<Void> deleteArticle(@PathVariable Long id) {
-        articleService.deleteArticle(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
+	}
+
+	@GetMapping("/public/categories/{categoryId}/produits")
+	public ResponseEntity<ArticleReponse> obtenirProduitsParCategorie(@PathVariable Long categoryId,
+			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
+			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
+			@RequestParam(name = "trierPar", defaultValue = AppConfig.TRIER_ARTICLE_PAR, required = false) String trierPar,
+			@RequestParam(name = "ordreTri", defaultValue = AppConfig.ORDONNER_PAR, required = false) String ordreTri) {
+
+		ArticleReponse reponseArticle = produitService.rechercherParCatégorie(categoryId, numeroPage, taillePage, trierPar,
+				ordreTri);
+
+		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
+	}
+
+	@GetMapping("/public/produits/motcle/{motcle}")
+	public ResponseEntity<ArticleReponse> obtenirProduitsParMotCle(@PathVariable String motcle,
+			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
+			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
+			@RequestParam(name = "trierPar", defaultValue = AppConfig.TRIER_ARTICLE_PAR, required = false) String trierPar,
+			@RequestParam(name = "ordreTri", defaultValue = AppConfig.ORDONNER_PAR, required = false) String ordreTri) {
+
+		ArticleReponse reponseArticle = produitService.rechercherArticleParMotClé(motcle, numeroPage, taillePage, trierPar,
+				ordreTri);
+
+		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
+	}
+
+	@PutMapping("/admin/produits/{productId}")
+	public ResponseEntity<ArticleDTO> mettreAJourProduit(@RequestBody Article article,
+			@PathVariable Long articleId) {
+		ArticleDTO produitMisAJour = produitService.mettreÀJourArticle(articleId, article);
+
+		return new ResponseEntity<ArticleDTO>(produitMisAJour, HttpStatus.OK);
+	}
+
+	@PutMapping("/admin/produits/{productId}/image")
+	public ResponseEntity<ArticleDTO> mettreAJourImageProduit(@PathVariable Long articleId, @RequestParam("image") MultipartFile image) throws IOException {
+		ArticleDTO articleMisAJour = produitService.mettreÀJourImageArticle(articleId, image);
+
+		return new ResponseEntity<ArticleDTO>(articleMisAJour, HttpStatus.OK);
+	}
+
+	@DeleteMapping("/admin/produits/{productId}")
+	public ResponseEntity<String> supprimerProduitParCategorie(@PathVariable Long articleId) {
+		String statut = produitService.supprimerArticle(articleId);
+
+		return new ResponseEntity<String>(statut, HttpStatus.OK);
+	}
+
 }

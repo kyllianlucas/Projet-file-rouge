@@ -1,6 +1,6 @@
 package com.doranco.site.dto;
 
-import java.util.Date;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,10 +12,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UtilisateurDTO {
 
-	private String nom;
+	private Long utilisateurId;
 	private String prenom;
-	private Date dateNaissance;
+	private String nom;
+	private String numeroMobile;
 	private String email;
-	private String password;
-	private String telephone;
+	private String motDePasse;
+	private AdresseDTO adresse;
+	private PanierDTO panier;
+	private Set<String> roles;
 }

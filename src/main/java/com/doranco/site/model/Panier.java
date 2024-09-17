@@ -1,7 +1,7 @@
 package com.doranco.site.model;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -18,19 +18,21 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Table(name = "paniers")
 @NoArgsConstructor
 @AllArgsConstructor
-@Table (name = "panier")
 public class Panier {
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long Id;
-	
-	@OneToOne
-	@JoinColumn(name = "user_id")
-	private Utilisateur user;
-	
-	 @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL, orphanRemoval = true)
-	    private Set<Item> items = new HashSet<>();
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long panierId;
+
+    @OneToOne
+    @JoinColumn(name = "utilisateur_id")
+    private Utilisateur utilisateur;
+
+    @OneToMany(mappedBy = "panier", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true)
+    private List<ArticlePanier> itemsPanier = new ArrayList<>();
+
+    private Double prixTotal = 0.0;
 }

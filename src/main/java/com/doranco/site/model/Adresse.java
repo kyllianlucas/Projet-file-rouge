@@ -1,68 +1,61 @@
 package com.doranco.site.model;
 
+import java.util.ArrayList;
+import java.util.List;
 
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "adresse")
+@Table(name = "adresses")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class Adresse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long idAdresse;
 
-    @NotBlank(message = "Le pays est requis")
-    @Size(max = 100, message = "Le pays ne doit pas dépasser 100 caractères")
-    @Pattern(regexp = "^[a-zA-ZàáâäãåąčćęèéêëěìíîïłńòóôöõøùúûüůýÿżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËĚÌÍÎÏŁŃÒÓÔÖÕØÙÚÛÜŮÝŸŻŹÑÇČŠŽ ]*$",
-        message = "Le pays ne doit contenir que des lettres")
-    @Column(name = "pays", nullable = false, length = 100)
-    private String pays;
+	@NotBlank
+	@Size(min = 5, message = "Le nom de la rue doit contenir au moins 5 caractères")
+	private String street;
+	
+	@NotBlank
+	@Size(min = 5, message = "Le nom du bâtiment doit contenir au moins 5 caractères")
+	private String buildingName;
+	
+	@NotBlank
+	@Size(min = 4, message = "Le nom de la ville doit contenir au moins 4 caractères")
+	private String city;
+	
+	
+	@NotBlank
+	@Size(min = 2, message = "Le nom du pays doit contenir au moins 2 caractères")
+	private String country;
+	
+	@NotBlank
+	@Size(min = 6, message = "Le code postal doit contenir au moins 6 caractères")
+	private String pincode;
 
-    @NotBlank(message = "La ville est requise")
-    @Size(max = 100, message = "La ville ne doit pas dépasser 100 caractères")
-    @Pattern(regexp = "^[a-zA-ZàáâäãåąčćęèéêëěìíîïłńòóôöõøùúûüůýÿżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËĚÌÍÎÏŁŃÒÓÔÖÕØÙÚÛÜŮÝŸŻŹÑÇČŠŽ ]*$",
-        message = "La ville ne doit contenir que des lettres")
-    @Column(name = "ville", nullable = false, length = 100)
-    private String ville;
-    
-    @NotBlank(message = "Le numéro de rue est requis")
-    @Pattern(regexp = "^\\d+[a-zA-Z]*$", message = "La rue doit commencer par un numero de un ou plusieurs chiffres, suivi éventuellement d'une lettre")
-    @Column(name = "rue", nullable = false, length = 255)
-    private String rue;
-    
-    @NotBlank(message = "Le code postal est requis")
-    @Pattern(regexp = "^\\d{5}$", message = "Le code postal doit être composé de 5 chiffres")
-    @Column(name = "code_postal",nullable = false, length = 5)
-    private String codePostal;
-    
-    @Size(max = 100, message = "Le complément d'adresse ne doit pas dépasser 100 caractères")
-    @Pattern(regexp = "^[a-zA-Z0-9 ]*$", message = "Le complément d'adresse ne doit contenir que des lettres, des chiffres et des espaces")
-    @Column(name = "complement", nullable = true, length = 100)
-    private String complementAdresse;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonBackReference
-    private Utilisateur user;
+	@ManyToMany(mappedBy = "adresses")
+	private List<Utilisateur> utilisateurs = new ArrayList<>();
+
+	public Adresse(String country, String city, String pincode, String street, String buildingName) {
+		this.country = country;
+		this.city = city;
+		this.pincode = pincode;
+		this.street = street;
+		this.buildingName = buildingName;
+	}
+
 }
-

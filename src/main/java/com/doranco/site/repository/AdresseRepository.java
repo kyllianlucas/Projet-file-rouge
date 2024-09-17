@@ -8,4 +8,7 @@ import com.doranco.site.model.Adresse;
 @Repository
 public interface AdresseRepository extends JpaRepository<Adresse, Long> {
 
+	Adresse findByCountryAndCityAndPincodeAndStreetAndBuildingName(String country, String city,
+			String pincode, String street, String buildingName);
+	
 }

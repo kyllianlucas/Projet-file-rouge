@@ -1,34 +1,48 @@
 package com.doranco.site.model;
 
-import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import jakarta.validation.constraints.*;
-
-
 @Entity
+@Table(name = "commandes")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Table (name = "commande")
+@AllArgsConstructor
 public class Commande {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @NotBlank(message = "Le nom est requis")
-    @Size(max = 8, message = "La date ne doit pas depasser 8 carateres")
-    @Column(name = "date", nullable = false, length = 8)
-    private Date dateCommande;
+    private Long commandeId;
 
-    @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Item> items = new HashSet<>();
-    
+    @Email
+    @Column(nullable = false)
+    private String email;
+
+    @OneToMany(mappedBy = "commande", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    private List<ArticleCommande> articlesCommande = new ArrayList<>();
+
+    private LocalDate dateCommande;
+
+    @OneToOne
+    @JoinColumn(name = "paiement_id")
+    private Paiement paiement;
+
+    private Double montantTotal;
+    private String statutCommande;
 }

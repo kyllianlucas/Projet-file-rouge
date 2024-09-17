@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 public class CaptchaService {
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
-    private static final String SECRET_KEY = "6Le34CUqAAAAAHSEskWGVh4upiQ_TkbObqzt-lKf"; // Remplacez par votre clé secrète reCAPTCHA
+    private static final String SECRET_KEY = "6LcYWkUqAAAAACGZBKT9VQa4VVAgiTkX9h5CVv8T"; // Remplacez par votre clé secrète reCAPTCHA
 
     @Autowired
     private final RestTemplate restTemplate;

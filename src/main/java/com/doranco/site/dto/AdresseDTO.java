@@ -5,16 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
-@AllArgsConstructor 
-@NoArgsConstructor 
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AdresseDTO {
-	 
+
+	private String rue;
+	private String nomBatiment;
+	private String ville;
+	private String pays;
 	private String codePostal;
-	 private String pays;
-	 private String complementAdresse;
-	 private String rue;
-	 private String ville;
-	
 }
