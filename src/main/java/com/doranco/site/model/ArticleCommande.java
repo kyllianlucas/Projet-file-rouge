@@ -24,7 +24,7 @@
 		
 		@ManyToOne
 		@JoinColumn(name = "id_produit")
-		private Produit article;
+		private Produit produit;
 		
 		@ManyToOne
 		@JoinColumn(name = "id_panier")

@@ -1,8 +1,6 @@
 package com.doranco.site.service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -15,15 +13,22 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.doranco.site.dto.*;
+import com.doranco.site.config.AppConfig;
+import com.doranco.site.dto.AdresseDTO;
+import com.doranco.site.dto.ArticleDTO;
+import com.doranco.site.dto.PanierDTO;
+import com.doranco.site.dto.UtilisateurDTO;
 import com.doranco.site.dto.UtilisateurReponse;
 import com.doranco.site.exception.APIException;
 import com.doranco.site.exception.ResourceNotFoundException;
-import com.doranco.site.model.*;
+import com.doranco.site.model.Adresse;
+import com.doranco.site.model.ArticlePanier;
+import com.doranco.site.model.Panier;
+import com.doranco.site.model.Role;
+import com.doranco.site.model.Utilisateur;
 import com.doranco.site.repository.AdresseRepository;
 import com.doranco.site.repository.RoleRepository;
 import com.doranco.site.repository.UtilisateurRepository;
-import com.doranco.site.config.AppConfig;
 
 import jakarta.transaction.Transactional;
 

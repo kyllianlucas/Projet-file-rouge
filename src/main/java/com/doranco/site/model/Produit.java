@@ -59,6 +59,6 @@ public class Produit {
     private String sousCategorie;
 
     // Taille (pour les produits comme tee-shirt)
-    private String taille;
+    private List<String> taille;
 }
 

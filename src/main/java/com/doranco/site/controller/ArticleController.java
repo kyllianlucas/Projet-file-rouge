@@ -78,7 +78,7 @@ public class ArticleController {
 		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
 	}
 
-	@PutMapping("/admin/produits/{productId}")
+	@PutMapping("/admin/produits/mettreAJour/{productId}")
 	public ResponseEntity<ArticleDTO> mettreAJourProduit(@RequestBody Produit article,
 			@PathVariable Long articleId) {
 		ArticleDTO produitMisAJour = produitService.mettreAJourArticle(articleId, article);
@@ -93,7 +93,7 @@ public class ArticleController {
 		return new ResponseEntity<ArticleDTO>(articleMisAJour, HttpStatus.OK);
 	}
 
-	@DeleteMapping("/admin/produits/{productId}")
+	@DeleteMapping("/admin/produits/supprimer/{productId}")
 	public ResponseEntity<String> supprimerProduitParCategorie(@PathVariable Long articleId) {
 		String statut = produitService.supprimerArticle(articleId);
 
