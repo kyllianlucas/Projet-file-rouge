@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,13 @@ import com.doranco.site.repository.CommandeRepository;
 import com.doranco.site.repository.PaiementRepository;
 import com.doranco.site.repository.PanierRepository;
 import com.doranco.site.repository.UtilisateurRepository;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Charge;
+import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 
 @Transactional
@@ -55,12 +62,24 @@ public class CommandeServiceImpl implements CommandeService {
 
 	@Autowired
 	public PanierService servicePanier;
+	
+	@Autowired
+	public StripeService stripeService;
 
 	@Autowired
 	public ModelMapper modelMapper;
+	
+	@Value("${stripe.api.key}")
+    private String stripeApiKey;
+	
+	
+	@PostConstruct
+	public void init() {
+		Stripe.apiKey= stripeApiKey;
+	}
 
 	@Override
-	public CommandeDTO passerCommande(String emailId, Long panierId, String méthodePaiement) {
+	public CommandeDTO passerCommande(String emailId, Long panierId, String méthodePaiement,  String stripeToken) {
 
 		Panier panier = panierRepo.findCartByEmailAndCartId(emailId, panierId);
 
@@ -78,11 +97,20 @@ public class CommandeServiceImpl implements CommandeService {
 
 		Paiement paiement = new Paiement();
 		paiement.setCommande(commande);
-		paiement.setModePaiement(méthodePaiement);
-
+		paiement.setModePaiement(méthodePaiement);		
 		paiement = paiementRepo.save(paiement);
-
 		commande.setPaiement(paiement);
+		
+		// Convertir le montant de Double à long (en centimes)
+	    long montantEnCentimes = (long) Math.round(panier.getPrixTotal() * 100);
+		
+		try {
+	        Charge charge = stripeService.chargeCard(stripeToken, montantEnCentimes, "eur"); // Assurez-vous que le montant est en cents
+	        paiement.setModePaiement("Stripe");
+	        paiementRepo.save(paiement);
+	    } catch (StripeException e) {
+	        throw new APIException("Erreur de paiement avec Stripe : " + e.getMessage());
+	    }
 
 		Commande commandeSauvegardée = commandeRepo.save(commande);
 
@@ -111,9 +139,9 @@ public class CommandeServiceImpl implements CommandeService {
 		panier.getItemsPanier().forEach(item -> {
 			int quantité = item.getQuantite();
 
-			Article produit = item.getProduit();
+			Produit produit = item.getProduit();
 
-			servicePanier.supprimerArticleDuPanier(panierId, item.getProduit().getIdArticle());
+			servicePanier.supprimerArticleDuPanier(panierId, item.getProduit().getIdProduit());
 
 			produit.setQuantite(produit.getQuantite() - quantité);
 		});
@@ -183,7 +211,7 @@ public class CommandeServiceImpl implements CommandeService {
 	}
 
 	@Override
-	public CommandeDTO mettreÀJourCommande(String emailId, Long commandeId, String statutCommande) {
+	public CommandeDTO mettreAJourCommande(String emailId, Long commandeId, String statutCommande) {
 
 		Commande commande = commandeRepo.findCommandeByEmailAndCommandeId(emailId, commandeId);
 

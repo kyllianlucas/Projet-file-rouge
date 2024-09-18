@@ -39,11 +39,11 @@ public class EcommerceApp implements CommandLineRunner {
 		try {
 			Role adminRole = new Role();
 			adminRole.setIdRole(AppConfig.ID_ADMIN);
-			adminRole.setNomRôle("ADMIN");
+			adminRole.setNomRole("ADMIN");
 
 			Role userRole = new Role();
 			userRole.setIdRole(AppConfig.ID_UTILISATEUR);
-			userRole.setNomRôle("USER");
+			userRole.setNomRole("USER");
 
 			List<Role> roles = List.of(adminRole, userRole);
 

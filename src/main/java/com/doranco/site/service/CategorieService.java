@@ -7,11 +7,11 @@ import com.doranco.site.model.Categorie;
 
 public interface CategorieService {
 
-	CategorieDTO créerCategorie(Categorie categorie);
+	CategorieDTO creerCategorie(Categorie categorie);
 
 	CategorieReponse obtenirCategories(Integer numéroPage, Integer taillePage, String trierPar, String ordreTri);
 
-	CategorieDTO mettreÀJourCategorie(Categorie categorie, Long categorieId);
+	CategorieDTO mettreAJourCategorie(Categorie categorie, Long categorieId);
 
 	String supprimerCategorie(Long categorieId);
 }

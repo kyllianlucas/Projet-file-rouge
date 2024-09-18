@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class FichierServiceImpl implements FichierService {
 
 	@Override
-	public String téléverserImage(String chemin, MultipartFile fichier) throws IOException {
+	public String televerserImage(String chemin, MultipartFile fichier) throws IOException {
 		
 		String nomFichierOriginal = fichier.getOriginalFilename();
 		String idAléatoire = UUID.randomUUID().toString();

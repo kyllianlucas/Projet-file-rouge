@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FichierService {
     
-    String téléverserImage(String chemin, MultipartFile fichier) throws IOException;
+    String televerserImage(String chemin, MultipartFile fichier) throws IOException;
     
     InputStream obtenirRessource(String chemin, String nomFichier) throws FileNotFoundException;
 

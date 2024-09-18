@@ -30,7 +30,7 @@ public class AdresseController {
 	
 	@PostMapping("/adresse")
 	public ResponseEntity<AdresseDTO> creerAdresse(@Valid @RequestBody AdresseDTO adresseDTO) {
-		AdresseDTO adresseEnregistree = serviceAdresse.créerAdresse(adresseDTO);
+		AdresseDTO adresseEnregistree = serviceAdresse.creerAdresse(adresseDTO);
 		
 		return new ResponseEntity<AdresseDTO>(adresseEnregistree, HttpStatus.CREATED);
 	}
@@ -51,7 +51,7 @@ public class AdresseController {
 	
 	@PutMapping("/adresses/{adresseId}")
 	public ResponseEntity<AdresseDTO> mettreAJourAdresse(@PathVariable Long adresseId, @RequestBody Adresse adresse) {
-		AdresseDTO adresseMiseAJour = serviceAdresse.mettreÀJourAdresse(adresseId, adresse);
+		AdresseDTO adresseMiseAJour = serviceAdresse.mettreAJourAdresse(adresseId, adresse);
 		
 		return new ResponseEntity<AdresseDTO>(adresseMiseAJour, HttpStatus.OK);
 	}

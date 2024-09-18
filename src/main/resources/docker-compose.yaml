@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  tm-mysql:
+    container_name: "mysql_e-commerce"
+    image: "mysql:8.0.18"
+    environment:
+      - MYSQL_DATABASE=e-commerce
+      - MYSQL_ROOT_PASSWORD=supersecret
+    volumes:
+      #- $HOME/Docker-Data/wildfly-mysql-data/db/init/:/docker-entrypoint-initdb.d/ # init database
+      #- $HOME/Docker-Data/wildfly-mysql-data/db/data/:/var/lib/mysql/              # data storage
+      - db-init:/docker-entrypoint-initdb.d/
+      - db-data:/var/lib/mysql/
+    ports:
+      - "3308:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: "e-commerce"
+    links:
+    - tm-mysql
+    environment:
+      PMA_HOST: tm-mysql
+      PMA_PORT: 3306
+      PMA_PASSWORD: supersecret
+      MYSQL_ROOT_PASSWORD: supersecret
+    ports:
+    - "8887:80"
+  
+        
+networks:
+    default:
+        driver: bridge
+
+volumes:
+  db-init:
+    driver: local
+  db-data:
+    driver: local

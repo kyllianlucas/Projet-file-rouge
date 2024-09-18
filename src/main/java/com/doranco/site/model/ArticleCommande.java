@@ -20,11 +20,11 @@
 		
 		@Id
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
-		private Long idArticleDeCommande;
+		private Long idPDeCommande;
 		
 		@ManyToOne
-		@JoinColumn(name = "id_article")
-		private Article article;
+		@JoinColumn(name = "id_produit")
+		private Produit article;
 		
 		@ManyToOne
 		@JoinColumn(name = "id_panier")

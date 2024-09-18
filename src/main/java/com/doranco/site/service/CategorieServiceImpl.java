@@ -15,9 +15,9 @@ import com.doranco.site.dto.CategorieDTO;
 import com.doranco.site.dto.CategorieReponse;
 import com.doranco.site.exception.APIException;
 import com.doranco.site.exception.ResourceNotFoundException;
-import com.doranco.site.repository.CategorieRepository;
-import com.doranco.site.model.Article;
 import com.doranco.site.model.Categorie;
+import com.doranco.site.model.Produit;
+import com.doranco.site.repository.CategorieRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -35,7 +35,7 @@ public class CategorieServiceImpl implements CategorieService {
 	private ModelMapper modelMapper;
 
 	@Override
-	public CategorieDTO créerCategorie(Categorie categorie) {
+	public CategorieDTO creerCategorie(Categorie categorie) {
 		Categorie categorieEnregistree = categorieRepo.findByCategoryName(categorie.getCategoryName());
 
 		if (categorieEnregistree != null) {
@@ -78,7 +78,7 @@ public class CategorieServiceImpl implements CategorieService {
 	}
 
 	@Override
-	public CategorieDTO mettreÀJourCategorie(Categorie categorie, Long categorieId) {
+	public CategorieDTO mettreAJourCategorie(Categorie categorie, Long categorieId) {
 		Categorie categorieEnregistree = categorieRepo.findById(categorieId)
 				.orElseThrow(() -> new ResourceNotFoundException("Catégorie", "categorieId", categorieId));
 
@@ -94,10 +94,10 @@ public class CategorieServiceImpl implements CategorieService {
 		Categorie categorie = categorieRepo.findById(categorieId)
 				.orElseThrow(() -> new ResourceNotFoundException("Catégorie", "categorieId", categorieId));
 		
-		List<Article> produits = categorie.getArticles();
+		List<Produit> produits = categorie.getArticles();
 
 		produits.forEach(produit -> {
-			produitService.supprimerArticle(produit.getIdArticle());  
+			produitService.supprimerArticle(produit.getIdProduit());  
 		});
 		
 		categorieRepo.delete(categorie);

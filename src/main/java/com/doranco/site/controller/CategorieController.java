@@ -30,7 +30,7 @@ public class CategorieController {
 
 	@PostMapping("/admin/categorie")
 	public ResponseEntity<CategorieDTO> creerCategorie(@Valid @RequestBody Categorie categorie) {
-		CategorieDTO categorieEnregistree = serviceCategorie.créerCategorie(categorie);
+		CategorieDTO categorieEnregistree = serviceCategorie.creerCategorie(categorie);
 
 		return new ResponseEntity<CategorieDTO>(categorieEnregistree, HttpStatus.CREATED);
 	}
@@ -50,7 +50,7 @@ public class CategorieController {
 	@PutMapping("/admin/categories/{categoryId}")
 	public ResponseEntity<CategorieDTO> mettreAJourCategorie(@RequestBody Categorie categorie,
 			@PathVariable Long categoryId) {
-		CategorieDTO categorieDTO = serviceCategorie.mettreÀJourCategorie(categorie, categoryId);
+		CategorieDTO categorieDTO = serviceCategorie.mettreAJourCategorie(categorie, categoryId);
 
 		return new ResponseEntity<CategorieDTO>(categorieDTO, HttpStatus.OK);
 	}

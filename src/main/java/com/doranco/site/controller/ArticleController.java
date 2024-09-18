@@ -16,12 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-
 import com.doranco.site.config.AppConfig;
 import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.dto.ArticleReponse;
 import com.doranco.site.dto.ArticleRequest;
-import com.doranco.site.model.Article;
+import com.doranco.site.model.Produit;
 import com.doranco.site.service.ArticleService;
 
 import jakarta.validation.Valid;
@@ -33,7 +32,7 @@ public class ArticleController {
 	@Autowired
 	private ArticleService produitService;
 
-	@PostMapping("/admin/produit/cree")
+	@PostMapping("/admin/produit/creer")
 	public ResponseEntity<ArticleDTO> ajouterProduit(@Valid @RequestBody ArticleRequest articleRequest) {
 
 		ArticleDTO articleEnregistre = produitService.ajouterArticle(articleRequest.getCategorieNom(), articleRequest.getArticle());
@@ -60,7 +59,7 @@ public class ArticleController {
 			@RequestParam(name = "trierPar", defaultValue = AppConfig.TRIER_ARTICLE_PAR, required = false) String trierPar,
 			@RequestParam(name = "ordreTri", defaultValue = AppConfig.ORDONNER_PAR, required = false) String ordreTri) {
 
-		ArticleReponse reponseArticle = produitService.rechercherParCatégorie(categoryId, numeroPage, taillePage, trierPar,
+		ArticleReponse reponseArticle = produitService.rechercherParCategorie(categoryId, numeroPage, taillePage, trierPar,
 				ordreTri);
 
 		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
@@ -73,23 +72,23 @@ public class ArticleController {
 			@RequestParam(name = "trierPar", defaultValue = AppConfig.TRIER_ARTICLE_PAR, required = false) String trierPar,
 			@RequestParam(name = "ordreTri", defaultValue = AppConfig.ORDONNER_PAR, required = false) String ordreTri) {
 
-		ArticleReponse reponseArticle = produitService.rechercherArticleParMotClé(motcle, numeroPage, taillePage, trierPar,
+		ArticleReponse reponseArticle = produitService.rechercherArticleParMotCle(motcle, numeroPage, taillePage, trierPar,
 				ordreTri);
 
 		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
 	}
 
 	@PutMapping("/admin/produits/{productId}")
-	public ResponseEntity<ArticleDTO> mettreAJourProduit(@RequestBody Article article,
+	public ResponseEntity<ArticleDTO> mettreAJourProduit(@RequestBody Produit article,
 			@PathVariable Long articleId) {
-		ArticleDTO produitMisAJour = produitService.mettreÀJourArticle(articleId, article);
+		ArticleDTO produitMisAJour = produitService.mettreAJourArticle(articleId, article);
 
 		return new ResponseEntity<ArticleDTO>(produitMisAJour, HttpStatus.OK);
 	}
 
 	@PutMapping("/admin/produits/{productId}/image")
 	public ResponseEntity<ArticleDTO> mettreAJourImageProduit(@PathVariable Long articleId, @RequestParam("image") MultipartFile image) throws IOException {
-		ArticleDTO articleMisAJour = produitService.mettreÀJourImageArticle(articleId, image);
+		ArticleDTO articleMisAJour = produitService.mettreAJourImageArticle(articleId, image);
 
 		return new ResponseEntity<ArticleDTO>(articleMisAJour, HttpStatus.OK);
 	}

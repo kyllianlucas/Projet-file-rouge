@@ -16,5 +16,5 @@ public class Role {
 
 	@Id
 	private Long idRole;
-	private String nomRôle;
+	private String nomRole;
 }

@@ -18,9 +18,9 @@ import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.dto.ArticleReponse;
 import com.doranco.site.exception.APIException;
 import com.doranco.site.exception.ResourceNotFoundException;
-import com.doranco.site.model.Article;
-import com.doranco.site.model.Panier;
 import com.doranco.site.model.Categorie;
+import com.doranco.site.model.Panier;
+import com.doranco.site.model.Produit;
 import com.doranco.site.repository.ArticleRepository;
 import com.doranco.site.repository.CategorieRepository;
 import com.doranco.site.repository.PanierRepository;
@@ -53,15 +53,15 @@ public class ArticleServiceImpl implements ArticleService {
 	private String chemin;
 
 	@Override
-	public ArticleDTO ajouterArticle(String categorieNom, Article article) {
+	public ArticleDTO ajouterArticle(String categorieNom, Produit article) {
 
 	    // Récupérer la catégorie depuis la base de données
 		Categorie categorie = categorieRepo.findByCategoryName(categorieNom);
 
 	    // Vérifier si le produit existe déjà dans cette catégorie
 	    boolean produitNonPrésent = true;
-	    List<Article> produits = categorie.getArticles();
-	    for (Article p : produits) {
+	    List<Produit> produits = categorie.getArticles();
+	    for (Produit p : produits) {
 	        if (p.getProductName().equals(article.getProductName()) && p.getDescription().equals(article.getDescription())) {
 	            produitNonPrésent = false;
 	            break;
@@ -88,7 +88,7 @@ public class ArticleServiceImpl implements ArticleService {
 	        article.setPrixSpecial(prixSpecial);
 
 	        // Enregistrer l'article dans la base de données
-	        Article produitEnregistre = articleRepo.save(article);
+	        Produit produitEnregistre = articleRepo.save(article);
 
 	        // Retourner l'article enregistré sous forme de DTO
 	        return modelMapper.map(produitEnregistre, ArticleDTO.class);
@@ -105,9 +105,9 @@ public class ArticleServiceImpl implements ArticleService {
 
 		Pageable détailsPage = PageRequest.of(numéroPage, taillePage, triParEtOrdre);
 
-		Page<Article> pageProduits = articleRepo.findAll(détailsPage);
+		Page<Produit> pageProduits = articleRepo.findAll(détailsPage);
 
-		List<Article> articles = pageProduits.getContent();
+		List<Produit> articles = pageProduits.getContent();
 
 		List<ArticleDTO> produitDTOs = articles.stream().map(produit -> modelMapper.map(produit, ArticleDTO.class))
 				.collect(Collectors.toList());
@@ -125,7 +125,7 @@ public class ArticleServiceImpl implements ArticleService {
 	}
 
 	@Override
-	public ArticleReponse rechercherParCatégorie(Long catégorieId, Integer numéroPage, Integer taillePage, String trierPar,
+	public ArticleReponse rechercherParCategorie(Long catégorieId, Integer numéroPage, Integer taillePage, String trierPar,
 			String ordreTri) {
 
 		Categorie catégorie = categorieRepo.findById(catégorieId)
@@ -136,9 +136,9 @@ public class ArticleServiceImpl implements ArticleService {
 
 		Pageable détailsPage = PageRequest.of(numéroPage, taillePage, triParEtOrdre);
 
-		Page<Article> pageProduits = articleRepo.findAll(détailsPage);
+		Page<Produit> pageProduits = articleRepo.findAll(détailsPage);
 
-		List<Article> produits = pageProduits.getContent();
+		List<Produit> produits = pageProduits.getContent();
 
 		if (produits.isEmpty()) {
 			throw new APIException(catégorie.getCategoryName() + " n'a pas de produits !!!");
@@ -160,15 +160,15 @@ public class ArticleServiceImpl implements ArticleService {
 	}
 
 	@Override
-	public ArticleReponse rechercherArticleParMotClé(String motClé, Integer numéroPage, Integer taillePage, String trierPar, String ordreTri) {
+	public ArticleReponse rechercherArticleParMotCle(String motClé, Integer numéroPage, Integer taillePage, String trierPar, String ordreTri) {
 		Sort triParEtOrdre = ordreTri.equalsIgnoreCase("asc") ? Sort.by(trierPar).ascending()
 				: Sort.by(trierPar).descending();
 
 		Pageable détailsPage = PageRequest.of(numéroPage, taillePage, triParEtOrdre);
 
-		Page<Article> pageProduits = articleRepo.findByProductNameLike(motClé, détailsPage);
+		Page<Produit> pageProduits = articleRepo.findByProductNameLike(motClé, détailsPage);
 
-		List<Article> articles = pageProduits.getContent();
+		List<Produit> articles = pageProduits.getContent();
 		
 		if (articles.isEmpty()) {
 			throw new APIException("Aucun produit trouvé avec le mot-clé : " + motClé);
@@ -190,8 +190,8 @@ public class ArticleServiceImpl implements ArticleService {
 	}
 
 	@Override
-	public ArticleDTO mettreÀJourArticle(Long articleId, Article article) {
-		Article produitDB = articleRepo.findById(articleId)
+	public ArticleDTO mettreAJourArticle(Long articleId, Produit article) {
+		Produit produitDB = articleRepo.findById(articleId)
 				.orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", articleId));
 
 		if (produitDB == null) {
@@ -199,35 +199,34 @@ public class ArticleServiceImpl implements ArticleService {
 		}
 
 		article.setImage(produitDB.getImage());
-		article.setIdArticle(articleId);
 		article.setCategorie(produitDB.getCategorie());
 
 		double prixSpecial = article.getPrix() - ((article.getRemise() * 0.01) * article.getPrix());
 		article.setPrixSpecial(prixSpecial);
 
-		Article produitEnregistré = articleRepo.save(article);
+		Produit produitEnregistré = articleRepo.save(article);
 
 		List<Panier> paniers = panierRepo.findCartsByProductId(articleId);
 
-		paniers.forEach(panier -> servicePanier.mettreÀJourArticleDansPaniers(panier.getPanierId(), articleId));
+		paniers.forEach(panier -> servicePanier.mettreAJourArticleDansPaniers(panier.getPanierId(), articleId));
 
 		return modelMapper.map(produitEnregistré, ArticleDTO.class);
 	}
 
 	@Override
-	public ArticleDTO mettreÀJourImageArticle(Long articleId, MultipartFile image) throws IOException {
-		Article produitDB = articleRepo.findById(articleId)
+	public ArticleDTO mettreAJourImageArticle(Long articleId, MultipartFile image) throws IOException {
+		Produit produitDB = articleRepo.findById(articleId)
 				.orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", articleId));
 
 		if (produitDB == null) {
 			throw new APIException("Produit non trouvé avec produitId: " + articleId);
 		}
 		
-		String nomFichier = serviceFichier.téléverserImage(chemin, image);
+		String nomFichier = serviceFichier.televerserImage(chemin, image);
 		
 		produitDB.setImage(nomFichier);
 		
-		Article produitMisAJour = articleRepo.save(produitDB);
+		Produit produitMisAJour = articleRepo.save(produitDB);
 		
 		return modelMapper.map(produitMisAJour, ArticleDTO.class);
 	}
@@ -235,7 +234,7 @@ public class ArticleServiceImpl implements ArticleService {
 	@Override
 	public String supprimerArticle(Long articleId) {
 
-		Article produit = articleRepo.findById(articleId)
+		Produit produit = articleRepo.findById(articleId)
 				.orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", articleId));
 
 		List<Panier> paniers = panierRepo.findCartsByProductId(articleId);

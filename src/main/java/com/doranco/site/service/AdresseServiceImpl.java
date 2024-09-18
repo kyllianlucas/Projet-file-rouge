@@ -30,7 +30,7 @@ public class AdresseServiceImpl implements AdresseService {
     private ModelMapper modelMapper;
 
     @Override
-    public AdresseDTO créerAdresse(AdresseDTO adresseDTO) {
+    public AdresseDTO creerAdresse(AdresseDTO adresseDTO) {
 
         String pays = adresseDTO.getPays();
         String ville = adresseDTO.getVille();
@@ -71,7 +71,7 @@ public class AdresseServiceImpl implements AdresseService {
     }
 
     @Override
-    public AdresseDTO mettreÀJourAdresse(Long adresseId, Adresse adresse) {
+    public AdresseDTO mettreAJourAdresse(Long adresseId, Adresse adresse) {
         Adresse adresseDepuisDB = adresseRepo.findByCountryAndCityAndPincodeAndStreetAndBuildingName(
                 adresse.getCountry(),  adresse.getCity(), adresse.getPincode(), adresse.getStreet(),
                 adresse.getBuildingName());

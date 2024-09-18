@@ -1,6 +1,8 @@
 package com.doranco.site.service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -237,7 +239,7 @@ public class UserServiceImpl implements UserService {
         Long panierId = utilisateur.getPanier().getPanierId();
 
         articlesPanier.forEach(item -> {
-            Long produitId = item.getProduit().getIdArticle();
+            Long produitId = item.getProduit().getIdProduit();
             cartService.supprimerArticleDuPanier(panierId, produitId);
         });
 

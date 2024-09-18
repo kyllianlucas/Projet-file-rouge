@@ -11,9 +11,9 @@ import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.dto.PanierDTO;
 import com.doranco.site.exception.APIException;
 import com.doranco.site.exception.ResourceNotFoundException;
-import com.doranco.site.model.Article;
 import com.doranco.site.model.ArticlePanier;
 import com.doranco.site.model.Panier;
+import com.doranco.site.model.Produit;
 import com.doranco.site.repository.ArticlePanierRepository;
 import com.doranco.site.repository.ArticleRepository;
 import com.doranco.site.repository.PanierRepository;
@@ -42,7 +42,7 @@ public class PanierServiceImpl implements PanierService {
 		Panier panier = panierRepo.findById(panierId)
 				.orElseThrow(() -> new ResourceNotFoundException("Panier", "panierId", panierId));
 
-		Article article = articleRepo.findById(produitId)
+		Produit article = articleRepo.findById(produitId)
 				.orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", produitId));
 
 		ArticlePanier panierItem = panierItemRepo.findCartItemByProductIdAndCartId(panierId, produitId);
@@ -125,11 +125,11 @@ public class PanierServiceImpl implements PanierService {
 	}
 
 	@Override
-	public void mettreÀJourArticleDansPaniers(Long panierId, Long produitId) {
+	public void mettreAJourArticleDansPaniers(Long panierId, Long produitId) {
 		Panier panier = panierRepo.findById(panierId)
 				.orElseThrow(() -> new ResourceNotFoundException("Panier", "panierId", panierId));
 
-		Article produit = articleRepo.findById(produitId)
+		Produit produit = articleRepo.findById(produitId)
 				.orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", produitId));
 
 		ArticlePanier panierItem = panierItemRepo.findCartItemByProductIdAndCartId(panierId, produitId);
@@ -148,11 +148,11 @@ public class PanierServiceImpl implements PanierService {
 	}
 
 	@Override
-	public PanierDTO mettreÀJourQuantitéArticleDansPanier(Long panierId, Long produitId, Integer quantité) {
+	public PanierDTO mettreAJourQuantitéArticleDansPanier(Long panierId, Long produitId, Integer quantité) {
 		Panier panier = panierRepo.findById(panierId)
 				.orElseThrow(() -> new ResourceNotFoundException("Panier", "panierId", panierId));
 
-		Article produit = articleRepo.findById(produitId)
+		Produit produit = articleRepo.findById(produitId)
 				.orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", produitId));
 
 		if (produit.getQuantite() == 0) {
@@ -205,7 +205,7 @@ public class PanierServiceImpl implements PanierService {
 
 		panier.setPrixTotal(panier.getPrixTotal() - (panierItem.getPrixProduit() * panierItem.getQuantite()));
 
-		Article produit = panierItem.getProduit();
+		Produit produit = panierItem.getProduit();
 		produit.setQuantite(produit.getQuantite() + panierItem.getQuantite());
 
 		panierItemRepo.deleteCartItemByProductIdAndCartId(panierId, produitId);

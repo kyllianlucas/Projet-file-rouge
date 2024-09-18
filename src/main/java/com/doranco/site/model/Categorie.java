@@ -31,6 +31,6 @@ public class Categorie {
 	private String categoryName;
 
 	@OneToMany(mappedBy = "categorie", cascade = CascadeType.ALL)
-	private List<Article> articles;
+	private List<Produit> articles;
 
 }

@@ -11,7 +11,7 @@ import com.doranco.site.dto.CommandeReponse;
 public interface CommandeService {
 
 		
-		CommandeDTO passerCommande(String emailId, Long panierId, String méthodePaiement);
+		CommandeDTO passerCommande(String emailId, Long panierId, String méthodePaiement,  String stripeToken);
 		
 		CommandeDTO obtenirCommande(String emailId, Long commandeId);
 		
@@ -19,6 +19,6 @@ public interface CommandeService {
 		
 		CommandeReponse obtenirToutesLesCommandes(Integer numéroPage, Integer taillePage, String trierPar, String ordreTri);
 		
-		CommandeDTO mettreÀJourCommande(String emailId, Long commandeId, String statutCommande);
+		CommandeDTO mettreAJourCommande(String emailId, Long commandeId, String statutCommande);
 	}
 

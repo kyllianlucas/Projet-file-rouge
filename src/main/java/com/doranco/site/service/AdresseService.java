@@ -7,13 +7,13 @@ import com.doranco.site.model.Adresse;
 
 public interface AdresseService {
     
-    AdresseDTO créerAdresse(AdresseDTO adresseDTO);
+    AdresseDTO creerAdresse(AdresseDTO adresseDTO);
     
     List<AdresseDTO> obtenirAdresses();
     
     AdresseDTO obtenirAdresse(Long adresseId);
     
-    AdresseDTO mettreÀJourAdresse(Long adresseId, Adresse adresse);
+    AdresseDTO mettreAJourAdresse(Long adresseId, Adresse adresse);
     
     String supprimerAdresse(Long adresseId);
 }

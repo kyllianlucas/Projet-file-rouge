@@ -49,7 +49,7 @@ public class PanierController {
 	
 	@PutMapping("/public/paniers/{panierId}/produits/{produitId}/quantite/{quantite}")
 	public ResponseEntity<PanierDTO> mettreAJourProduitPanier(@PathVariable Long panierId, @PathVariable Long produitId, @PathVariable Integer quantite) {
-		PanierDTO panierDTO = servicePanier.mettreÀJourQuantitéArticleDansPanier(panierId, produitId, quantite);
+		PanierDTO panierDTO = servicePanier.mettreAJourQuantitéArticleDansPanier(panierId, produitId, quantite);
 		
 		return new ResponseEntity<PanierDTO>(panierDTO, HttpStatus.OK);
 	}

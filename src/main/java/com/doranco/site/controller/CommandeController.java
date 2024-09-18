@@ -27,8 +27,8 @@ public class CommandeController {
 	public CommandeService commandeService;
 	
 	@PostMapping("/public/utilisateurs/{emailId}/paniers/{cartId}/paiements/{paymentMethod}/commande")
-	public ResponseEntity<CommandeDTO> commanderProduits(@PathVariable String emailId, @PathVariable Long cartId, @PathVariable String paymentMethod) {
-		CommandeDTO commande = commandeService.passerCommande(emailId, cartId, paymentMethod);
+	public ResponseEntity<CommandeDTO> commanderProduits(@PathVariable String emailId, @PathVariable Long cartId, @PathVariable String paymentMethod, @RequestParam String stripeToken) {
+		CommandeDTO commande = commandeService.passerCommande(emailId, cartId, paymentMethod, stripeToken);
 		
 		return new ResponseEntity<CommandeDTO>(commande, HttpStatus.CREATED);
 	}
@@ -61,7 +61,7 @@ public class CommandeController {
 	
 	@PutMapping("admin/utilisateurs/{emailId}/commandes/{orderId}/statutCommande/{orderStatus}")
 	public ResponseEntity<CommandeDTO> mettreAJourCommandeParUtilisateur(@PathVariable String emailId, @PathVariable Long orderId, @PathVariable String orderStatus) {
-		CommandeDTO commande = commandeService.mettreÀJourCommande(emailId, orderId, orderStatus);
+		CommandeDTO commande = commandeService.mettreAJourCommande(emailId, orderId, orderStatus);
 		
 		return new ResponseEntity<CommandeDTO>(commande, HttpStatus.OK);
 	}

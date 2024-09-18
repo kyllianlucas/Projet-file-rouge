@@ -24,11 +24,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Article {
+public class Produit {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long idArticle;
+	private Long idProduit;
 
 	@NotBlank
 	@Size(min = 3, message = "Le nom du produit doit contenir au moins 3 caractères")
@@ -50,10 +50,10 @@ public class Article {
 	private Categorie categorie;
 	
 	@OneToMany(mappedBy = "produit", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
-	private List<ArticlePanier> articlesDuPanier = new ArrayList<>();
+	private List<ArticlePanier> produitDuPanier = new ArrayList<>();
 	
-	@OneToMany(mappedBy = "article", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-	private List<ArticleCommande> articlesDeCommande = new ArrayList<>();
+	@OneToMany(mappedBy = "produit", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+	private List<ArticleCommande> produitDeCommande = new ArrayList<>();
 
 	// Sous-catégorie pour les tee-shirts (homme, femme, enfant)
     private String sousCategorie;

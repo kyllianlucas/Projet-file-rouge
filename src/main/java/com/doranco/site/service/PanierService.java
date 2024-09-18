@@ -11,9 +11,9 @@ public interface PanierService {
 	
 	PanierDTO obtenirPanier(String emailId, Long panierId);
 	
-	PanierDTO mettreÀJourQuantitéArticleDansPanier(Long panierId, Long produitId, Integer quantité);
+	PanierDTO mettreAJourQuantitéArticleDansPanier(Long panierId, Long produitId, Integer quantité);
 	
-	void mettreÀJourArticleDansPaniers(Long panierId, Long produitId);
+	void mettreAJourArticleDansPaniers(Long panierId, Long produitId);
 	
 	String supprimerArticleDuPanier(Long panierId, Long produitId);
 	

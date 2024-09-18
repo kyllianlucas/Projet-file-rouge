@@ -28,7 +28,7 @@ public class ArticlePanier {
 	
 	@ManyToOne
 	@JoinColumn(name = "id_produit")
-	private Article produit;
+	private Produit produit;
 	
 	private Integer quantite;
 	private double remise;
