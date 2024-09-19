@@ -3,7 +3,10 @@ package com.doranco.site.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.doranco.site.util.StringListConverter;
+
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -41,9 +44,9 @@ public class Produit {
 	private String description;
 	
 	private Integer quantite;
-	private double prix;
-	private double remise;
-	private double prixSpecial;
+	private double prix = 0.0;
+	private double remise = 0.0;
+	private double prixSpecial = 0.0;
 
 	@ManyToOne
 	@JoinColumn(name = "id_categorie")
@@ -59,6 +62,7 @@ public class Produit {
     private String sousCategorie;
 
     // Taille (pour les produits comme tee-shirt)
+    @Convert(converter = StringListConverter.class)
     private List<String> taille;
 }
 

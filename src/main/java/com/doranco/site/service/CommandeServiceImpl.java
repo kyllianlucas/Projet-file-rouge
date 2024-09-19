@@ -125,7 +125,7 @@ public class CommandeServiceImpl implements CommandeService {
 		for (ArticlePanier articlePanier : articlesPanier) {
 			ArticleCommande articleCommande = new ArticleCommande();
 
-			articleCommande.setArticle(articlePanier.getProduit());
+			articleCommande.setProduit(articlePanier.getProduit());
 			articleCommande.setQuantite(articlePanier.getQuantite());
 			articleCommande.setRemise(articlePanier.getRemise());
 			articleCommande.setPrixProduitCommande(articlePanier.getPrixProduit());

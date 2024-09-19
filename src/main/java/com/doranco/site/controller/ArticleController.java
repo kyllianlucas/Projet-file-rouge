@@ -1,6 +1,7 @@
 package com.doranco.site.controller;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import com.doranco.site.config.AppConfig;
 import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.dto.ArticleReponse;
 import com.doranco.site.dto.ArticleRequest;
+import com.doranco.site.dto.ProduitDTO;
 import com.doranco.site.model.Produit;
 import com.doranco.site.service.ArticleService;
 
@@ -40,7 +42,7 @@ public class ArticleController {
 		return new ResponseEntity<ArticleDTO>(articleEnregistre, HttpStatus.CREATED);
 	}
 
-	@GetMapping("/public/produits")
+	@GetMapping("/public/produit")
 	public ResponseEntity<ArticleReponse> obtenirTousLesProduits(
 			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
 			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
@@ -52,7 +54,7 @@ public class ArticleController {
 		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
 	}
 
-	@GetMapping("/public/categories/{categoryId}/produits")
+	@GetMapping("/public/categories/{categoryId}/produit")
 	public ResponseEntity<ArticleReponse> obtenirProduitsParCategorie(@PathVariable Long categoryId,
 			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
 			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
@@ -65,7 +67,7 @@ public class ArticleController {
 		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
 	}
 
-	@GetMapping("/public/produits/motcle/{motcle}")
+	@GetMapping("/public/produit/motcle/{motcle}")
 	public ResponseEntity<ArticleReponse> obtenirProduitsParMotCle(@PathVariable String motcle,
 			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
 			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
@@ -78,26 +80,34 @@ public class ArticleController {
 		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
 	}
 
-	@PutMapping("/admin/produits/mettreAJour/{productId}")
-	public ResponseEntity<ArticleDTO> mettreAJourProduit(@RequestBody Produit article,
-			@PathVariable Long articleId) {
+	@PutMapping("/admin/produit/mettreAJour")
+	public ResponseEntity<ArticleDTO> mettreAJourProduit(@RequestBody ProduitDTO  produitDTO) {
+		Long articleId = produitDTO.getArticleId();
+	    Produit article = produitDTO.getProduit();
 		ArticleDTO produitMisAJour = produitService.mettreAJourArticle(articleId, article);
 
 		return new ResponseEntity<ArticleDTO>(produitMisAJour, HttpStatus.OK);
 	}
 
-	@PutMapping("/admin/produits/{productId}/image")
-	public ResponseEntity<ArticleDTO> mettreAJourImageProduit(@PathVariable Long articleId, @RequestParam("image") MultipartFile image) throws IOException {
+	@PutMapping("/admin/produit/image")
+	public ResponseEntity<ArticleDTO> mettreAJourImageProduit(@RequestParam ProduitDTO produitDTO) throws IOException {
+		Long articleId = produitDTO.getArticleId();
+		MultipartFile image = produitDTO.getImage();
 		ArticleDTO articleMisAJour = produitService.mettreAJourImageArticle(articleId, image);
 
 		return new ResponseEntity<ArticleDTO>(articleMisAJour, HttpStatus.OK);
 	}
 
-	@DeleteMapping("/admin/produits/supprimer/{productId}")
-	public ResponseEntity<String> supprimerProduitParCategorie(@PathVariable Long articleId) {
-		String statut = produitService.supprimerArticle(articleId);
-
-		return new ResponseEntity<String>(statut, HttpStatus.OK);
+	@DeleteMapping("/admin/produit/supprimer")
+	public ResponseEntity<String> supprimerProduit(@RequestBody Map<String, Long> requestBody) {
+	    Long articleId = requestBody.get("articleId"); // Récupérer l'ID depuis le body
+	    
+	    if (articleId != null) {
+	        String statut = produitService.supprimerArticle(articleId);
+	        return new ResponseEntity<>(statut, HttpStatus.OK);
+	    } else {
+	        return new ResponseEntity<>("Article ID not provided", HttpStatus.BAD_REQUEST);
+	    }
 	}
 
 }
