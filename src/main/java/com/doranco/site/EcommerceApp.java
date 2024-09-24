@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,7 +16,7 @@ import com.doranco.site.model.Role;
 import com.doranco.site.config.AppConfig;
 
 @SpringBootApplication
-public class EcommerceApp implements CommandLineRunner {
+public class EcommerceApp extends SpringBootServletInitializer implements CommandLineRunner {
 
 	@Autowired
 	private RoleRepository roleRepo;
