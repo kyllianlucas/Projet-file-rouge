@@ -12,7 +12,7 @@ public class AppConfig {
 	public static final Long ID_ADMIN = 101L;
 	public static final Long ID_UTILISATEUR = 102L;
 	public static final long VALIDITE_TOKEN_JWT = 5 * 60 * 60;
-	public static final String[] URL_PUBLIC = { "/v3/api-docs/**", "/swagger-ui/**", "/api/inscription", "/api/connexion" };
+	public static final String[] URL_PUBLIC = { "/v3/api-docs/**", "/swagger-ui/**", "/api/inscription", "/api/connexion", "/api/produit/all" };
 	public static final String[] URL_UTILISATEUR = { "/api/public/**" };
 	public static final String[] URL_ADMIN = { "/api/admin/**" };
 	

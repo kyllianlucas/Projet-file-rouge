@@ -40,7 +40,7 @@ public class Produit {
 	private String image;
 	
 	@NotBlank
-	@Size(min = 6, message = "La description du produit doit contenir au moins 6 caractères")
+	@Size(min = 6, max=2000, message = "La description du produit doit contenir au moins 6 caractères")
 	private String description;
 	
 	private Integer quantite;

@@ -1,6 +1,7 @@
 package com.doranco.site.controller;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,23 +36,25 @@ public class ArticleController {
 	private ArticleService produitService;
 
 	@PostMapping("/admin/produit/creer")
-	public ResponseEntity<ArticleDTO> ajouterProduit(@Valid @RequestBody ArticleRequest articleRequest) {
+	public ResponseEntity<ArticleDTO> ajouterProduit(@Valid @RequestBody ArticleRequest articleRequest ) {
 
 		ArticleDTO articleEnregistre = produitService.ajouterArticle(articleRequest.getCategorieNom(), articleRequest.getArticle());
 
 		return new ResponseEntity<ArticleDTO>(articleEnregistre, HttpStatus.CREATED);
 	}
 
-	@GetMapping("/public/produit")
-	public ResponseEntity<ArticleReponse> obtenirTousLesProduits(
-			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
-			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
-			@RequestParam(name = "trierPar", defaultValue = AppConfig.TRIER_ARTICLE_PAR, required = false) String trierPar,
-			@RequestParam(name = "ordreTri", defaultValue = AppConfig.ORDONNER_PAR, required = false) String ordreTri) {
+	@GetMapping("/produit/all")
+	public ResponseEntity<List<ArticleDTO>> obtenirTousLesArticlesSansPagination() {
+	    // Récupérer tous les articles sans pagination
+	    List<ArticleDTO> tousLesArticles = produitService.obtenirTousLesArticlesSansPagination();
 
-		ArticleReponse reponseArticle = produitService.obtenirTousLesArticles(numeroPage, taillePage, trierPar, ordreTri);
-
-		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
+	    // Vérifier si la liste est vide
+	    if (tousLesArticles.isEmpty()) {
+	        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 si aucun article n'est trouvé
+	    }
+	    
+	    // Retourner la liste des articles avec un code HTTP 200 (OK)
+	    return new ResponseEntity<>(tousLesArticles, HttpStatus.OK);
 	}
 
 	@GetMapping("/public/categories/{categoryId}/produit")

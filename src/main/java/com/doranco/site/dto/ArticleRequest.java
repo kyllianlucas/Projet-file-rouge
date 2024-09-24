@@ -13,4 +13,5 @@ public class ArticleRequest {
 
 	Produit article;
 	String CategorieNom;
+	
 }

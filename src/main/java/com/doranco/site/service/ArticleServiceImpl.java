@@ -76,6 +76,20 @@ public class ArticleServiceImpl implements ArticleService {
 	                throw new APIException("Sous-catégorie et taille sont requises pour la catégorie tee-shirt");
 	            }
 	        }
+	        
+	     // Si la catégorie est "volant", on attend des informations sur le type de volant
+	        if (categorie.getCategoryName().equalsIgnoreCase("volant")) {
+	            if (article.getSousCategorie() == null) {
+	                throw new APIException("Le type de volant est requis pour la catégorie 'volant' (plastique, plume, hybride).");
+	            }
+	        }
+	        
+	     // Si la catégorie est "volant", on attend des informations sur le type de volant
+	        if (categorie.getCategoryName().equalsIgnoreCase("raquette")) {
+	            if (article.getSousCategorie() == null) {
+	                throw new APIException("La marque de la raquette est requis");
+	            }
+	        }
 
 	        // Définir une image par défaut si aucune image n'est fournie
 	        article.setImage("defaut.png");
@@ -98,32 +112,19 @@ public class ArticleServiceImpl implements ArticleService {
 	}
 
 	@Override
-	public ArticleReponse obtenirTousLesArticles(Integer numéroPage, Integer taillePage, String trierPar, String ordreTri) {
+	public List<ArticleDTO> obtenirTousLesArticlesSansPagination() {
+        // Utilisation du repository pour récupérer tous les articles
+        List<Produit> articles = articleRepo.findAll();
 
-		Sort triParEtOrdre = ordreTri.equalsIgnoreCase("asc") ? Sort.by(trierPar).ascending()
-				: Sort.by(trierPar).descending();
+        // Conversion des entités Article en ArticleDTO (vous devrez peut-être mapper les objets)
+        return articles.stream().map(article -> convertToDTO(article))
+            .collect(Collectors.toList());
+    }
 
-		Pageable détailsPage = PageRequest.of(numéroPage, taillePage, triParEtOrdre);
-
-		Page<Produit> pageProduits = articleRepo.findAll(détailsPage);
-
-		List<Produit> articles = pageProduits.getContent();
-
-		List<ArticleDTO> produitDTOs = articles.stream().map(produit -> modelMapper.map(produit, ArticleDTO.class))
-				.collect(Collectors.toList());
-
-		ArticleReponse réponseProduit = new ArticleReponse();
-
-		réponseProduit.setContenu(produitDTOs);
-		réponseProduit.setNumeroPage(pageProduits.getNumber());
-		réponseProduit.setTaillePage(pageProduits.getSize());
-		réponseProduit.setTotalElements(pageProduits.getTotalElements());
-		réponseProduit.setTotalPages(pageProduits.getTotalPages());
-		réponseProduit.setDernierePage(pageProduits.isLast());
-
-		return réponseProduit;
-	}
-
+	private ArticleDTO convertToDTO(Produit article) {
+        return new ArticleDTO(article.getIdProduit(), article.getProductName(), article.getDescription(), article.getImage(), article.getQuantite(), article.getPrix(), article.getRemise(), article.getPrixSpecial());
+    }
+	
 	@Override
 	public ArticleReponse rechercherParCategorie(Long catégorieId, Integer numéroPage, Integer taillePage, String trierPar,
 			String ordreTri) {

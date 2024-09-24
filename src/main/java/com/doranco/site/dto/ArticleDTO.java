@@ -13,8 +13,8 @@ public class ArticleDTO {
 
 	private Long articleId;
 	private String nomProduit;
-	private String image;
 	private String description;
+	private String image;
 	private Integer quantite;
 	private double prix;
 	private double reduction;
