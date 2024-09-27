@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,8 +26,9 @@ import com.doranco.site.dto.ArticleRequest;
 import com.doranco.site.dto.ProduitDTO;
 import com.doranco.site.model.Produit;
 import com.doranco.site.service.ArticleService;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -36,11 +38,20 @@ public class ArticleController {
 	private ArticleService produitService;
 
 	@PostMapping("/admin/produit/creer")
-	public ResponseEntity<ArticleDTO> ajouterProduit(@Valid @RequestBody ArticleRequest articleRequest ) {
+	public ResponseEntity<ArticleDTO> ajouterProduit(@ModelAttribute ArticleRequest articleRequest ) {
+		try {
+		
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+			Produit article = objectMapper.readValue(articleRequest.getArticleJson(), Produit.class);
+	
+			ArticleDTO articleEnregistre = produitService.ajouterArticle(article, articleRequest.getCategorieNom(), articleRequest.getImage());
 
-		ArticleDTO articleEnregistre = produitService.ajouterArticle(articleRequest.getCategorieNom(), articleRequest.getArticle());
-
-		return new ResponseEntity<ArticleDTO>(articleEnregistre, HttpStatus.CREATED);
+			return new ResponseEntity<ArticleDTO>(articleEnregistre, HttpStatus.CREATED);
+		}catch (Exception e) {
+        // Gérer les exceptions et retourner une réponse appropriée
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@GetMapping("/produit/all")
@@ -57,6 +68,18 @@ public class ArticleController {
 	    return new ResponseEntity<>(tousLesArticles, HttpStatus.OK);
 	}
 
+	@GetMapping("/produit/promotions")
+	public ResponseEntity<List<ArticleDTO>> obtenirArticlesEnPromotion() {
+	    List<ArticleDTO> articlesEnPromotion = produitService.obtenirArticlesEnPromotion();
+
+	    if (articlesEnPromotion.isEmpty()) {
+	        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 si aucun article n'est trouvé
+	    }
+
+	    return new ResponseEntity<>(articlesEnPromotion, HttpStatus.OK); // 200 OK
+	}
+	
+	
 	@GetMapping("/public/categories/{categoryId}/produit")
 	public ResponseEntity<ArticleReponse> obtenirProduitsParCategorie(@PathVariable Long categoryId,
 			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,

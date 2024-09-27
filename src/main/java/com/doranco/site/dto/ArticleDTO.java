@@ -19,4 +19,5 @@ public class ArticleDTO {
 	private double prix;
 	private double reduction;
 	private double prixSpecial;
+	private String marque;
 }

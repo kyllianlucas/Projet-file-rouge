@@ -12,7 +12,7 @@ import com.doranco.site.model.Produit;
 
 public interface ArticleService {
 
-		ArticleDTO ajouterArticle(String categorieNom, Produit article);
+		ArticleDTO ajouterArticle(Produit article, String categorieNom, MultipartFile image) throws IOException;
 
 		ArticleReponse rechercherParCategorie(Long catégorieId, Integer numéroPage, Integer taillePage, String trierPar,
 				String ordreTri);
@@ -27,5 +27,7 @@ public interface ArticleService {
 		String supprimerArticle(Long articleId);
 
 		List<ArticleDTO> obtenirTousLesArticlesSansPagination();
+
+		List<ArticleDTO> obtenirArticlesEnPromotion();
 
 }

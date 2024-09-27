@@ -1,6 +1,7 @@
 package com.doranco.site.dto;
 
-import com.doranco.site.model.Produit;
+import org.springframework.web.multipart.MultipartFile;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ArticleRequest {
 
-	Produit article;
-	String CategorieNom;
-	
+	private String articleJson;
+	private String CategorieNom;
+	private MultipartFile image;
 }

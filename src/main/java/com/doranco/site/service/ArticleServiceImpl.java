@@ -1,6 +1,8 @@
 package com.doranco.site.service;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.dto.ArticleReponse;
+import com.doranco.site.dto.ArticleRequest;
 import com.doranco.site.exception.APIException;
 import com.doranco.site.exception.ResourceNotFoundException;
 import com.doranco.site.model.Categorie;
@@ -53,8 +56,9 @@ public class ArticleServiceImpl implements ArticleService {
 	private String chemin;
 
 	@Override
-	public ArticleDTO ajouterArticle(String categorieNom, Produit article) {
-
+	public ArticleDTO ajouterArticle(Produit article, String categorieNom, MultipartFile image) throws IOException {
+		
+		System.out.println("Nom de la catégorie reçu : " + categorieNom);
 	    // Récupérer la catégorie depuis la base de données
 		Categorie categorie = categorieRepo.findByCategoryName(categorieNom);
 
@@ -69,11 +73,11 @@ public class ArticleServiceImpl implements ArticleService {
 	    }
 
 	    if (produitNonPrésent) {
-	        // Si la catégorie est "tee-shirt", on attend des informations supplémentaires (sous-catégorie et taille)
-	        if (categorie.getCategoryName().equalsIgnoreCase("tee-shirt")) {
+	        // Si la catégorie est "vetement", on attend des informations supplémentaires (sous-catégorie et taille)
+	        if (categorie.getCategoryName().equalsIgnoreCase("vetement")) {
 	            // Vérification de la sous-catégorie
-	            if (article.getSousCategorie() == null || article.getTaille() == null) {
-	                throw new APIException("Sous-catégorie et taille sont requises pour la catégorie tee-shirt");
+	            if (article.getSousCategorie() == null && article.getTaille() == null) {
+	                throw new APIException("Sous-catégorie et taille sont requises pour la catégorie vetement");
 	            }
 	        }
 	        
@@ -84,19 +88,36 @@ public class ArticleServiceImpl implements ArticleService {
 	            }
 	        }
 	        
-	     // Si la catégorie est "volant", on attend des informations sur le type de volant
+	     // Si la catégorie est "raquette", on attend des informations sur le type de volant
 	        if (categorie.getCategoryName().equalsIgnoreCase("raquette")) {
-	            if (article.getSousCategorie() == null) {
+	            if (article.getMarque() == null) {
 	                throw new APIException("La marque de la raquette est requis");
 	            }
 	        }
+	        
+	     // Si la catégorie est "chaussure", on attend des informations sur le type de volant
+	        if (categorie.getCategoryName().equalsIgnoreCase("chaussure")) {
+	            if (article.getGenre() == null && article.getPointure() == null) {
+	                throw new APIException("La pointure et la marque de la chaussure est requis");
+	            }
+	        }
+	        
+	        if (categorie.getCategoryName().equalsIgnoreCase("bagagerie")) {
+	        	if (article.getTaille() == null) {
+	                throw new APIException("La taille du sac est requis");
+	            }
+	        }
 
-	        // Définir une image par défaut si aucune image n'est fournie
-	        article.setImage("defaut.png");
-
+	        if (image != null && !image.isEmpty()) {
+	            article.setImage(image.getBytes());
+	        } else {
+	            // Définir une image par défaut si aucune image n'est fournie (ou la laisser vide)
+	            article.setImage(null);  // Ou article.setImage(defaultImageBytes) si vous avez une image par défaut
+	        }
+	        
 	        // Associer l'article à sa catégorie
 	        article.setCategorie(categorie);
-
+	      
 	        // Calculer le prix spécial en fonction de la remise
 	        double prixSpecial = article.getPrix() - ((article.getRemise() * 0.01) * article.getPrix());
 	        article.setPrixSpecial(prixSpecial);
@@ -110,6 +131,18 @@ public class ArticleServiceImpl implements ArticleService {
 	        throw new APIException("Produit déjà existant !!!");
 	    }
 	}
+	
+	
+	public List<ArticleDTO> obtenirArticlesEnPromotion() {
+        List<Produit> produitsEnPromotion = articleRepo.findAll()
+                .stream()
+                .filter(produit -> produit.getRemise() > 0)
+                .collect(Collectors.toList());
+
+        return produitsEnPromotion.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 
 	@Override
 	public List<ArticleDTO> obtenirTousLesArticlesSansPagination() {
@@ -122,7 +155,11 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
 	private ArticleDTO convertToDTO(Produit article) {
-        return new ArticleDTO(article.getIdProduit(), article.getProductName(), article.getDescription(), article.getImage(), article.getQuantite(), article.getPrix(), article.getRemise(), article.getPrixSpecial());
+	    String imageBase64 = article.getImage() != null ? 
+	            Base64.getEncoder().encodeToString(article.getImage()) : null;
+	        String imageUrl = imageBase64 != null ? "data:image/jpeg;base64," + imageBase64 : null;
+
+        return new ArticleDTO(article.getIdProduit(), article.getProductName(), article.getDescription(), imageUrl, article.getQuantite(), article.getPrix(), article.getRemise(), article.getPrixSpecial(), article.getMarque());
     }
 	
 	@Override

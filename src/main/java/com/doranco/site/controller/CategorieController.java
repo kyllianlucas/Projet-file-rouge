@@ -28,7 +28,7 @@ public class CategorieController {
 	@Autowired
 	private CategorieService serviceCategorie;
 
-	@PostMapping("/admin/categorie")
+	@PostMapping("/admin/categorie/creer")
 	public ResponseEntity<CategorieDTO> creerCategorie(@Valid @RequestBody Categorie categorie) {
 		CategorieDTO categorieEnregistree = serviceCategorie.creerCategorie(categorie);
 
