@@ -1,5 +1,6 @@
 package com.doranco.site.service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,7 +61,11 @@ public class UserServiceImpl implements UserService {
         try {
             // Mapping DTO to entity
             Utilisateur utilisateur = modelMapper.map(utilisateurDTO, Utilisateur.class);
-
+            
+            if (utilisateur.getRoles() == null) {
+                utilisateur.setRoles(new HashSet<>()); // Utiliser HashSet pour initialiser les rôles
+            }
+            
             // Ajout du rôle par défaut (utilisateur)
             Role role = roleRepo.findById(AppConfig.ID_UTILISATEUR).get();
             utilisateur.getRoles().add(role);
