@@ -1,0 +1,24 @@
+spring:
+ application:
+  name: e-commerce
+ jpa:
+  database: mysql
+  show-sql: true
+  hibernate:
+   ddl-auto: update
+ datasource:
+  url: jdbc:mysql://13.51.146.75:3308/e-commerce
+  username: root
+  password: supersecret
+  driverClassName: com.mysql.cj.jdbc.Driver
+ servlet:
+   multipart:
+    enabled: true         # Active le multipart
+    max-file-size: 10MB    # Taille max du fichier
+    max-request-size: 10MB # Taille max de la requête multipart
+jwt:
+   header: Authorization
+   secret: remplacezparvotreclebase64generee  # Remplacez par votre clé publique en base64
+   expiration: 1200000   # Durée d'expiration en milisecondes (20 minutes)
+project:
+  image: images/
