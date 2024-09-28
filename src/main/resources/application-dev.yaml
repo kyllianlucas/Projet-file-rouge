@@ -7,10 +7,10 @@ spring:
   hibernate:
    ddl-auto: update
  datasource:
-  url: jdbc:mysql://localhost:3308/e-commerce
-  username: root
-  password: supersecret
-  driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://13.51.146.75:3308/e-commerce
+    username: root
+    password: Kylroz2002!
+    driverClassName: com.mysql.cj.jdbc.Driver
  servlet:
    multipart:
     enabled: true         # Active le multipart

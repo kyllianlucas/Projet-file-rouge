@@ -1,3 +1,5 @@
 spring:
  application:
   name: e-commerce
+  profiles:
+    active: prod
