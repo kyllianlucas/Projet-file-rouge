@@ -182,63 +182,82 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UtilisateurDTO mettreAJourUtilisateur(Long utilisateurId, UtilisateurDTO utilisateurDTO) {
-        Utilisateur utilisateur = userRepo.findById(utilisateurId)
-                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur", "utilisateurId", utilisateurId));
+    public UtilisateurDTO mettreAJourUtilisateur(UtilisateurDTO utilisateurDTO) {
+        // Récupérer l'utilisateur existant à partir de la base de données par email
+        String email = utilisateurDTO.getEmail();
+        Utilisateur utilisateur = userRepo.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur", "email", email));
 
-     // Mise à jour des informations de l'utilisateur avec les données fournies dans le DTO
-     if (utilisateurDTO.getPrenom() != null) {
-         utilisateur.setPrenom(utilisateurDTO.getPrenom());
-     }
+        // Mise à jour des informations de l'utilisateur avec les données fournies dans le DTO
+        if (utilisateurDTO.getPrenom() != null && !utilisateurDTO.getPrenom().trim().isEmpty()) {
+            utilisateur.setPrenom(utilisateurDTO.getPrenom());
+        }
 
-     if (utilisateurDTO.getNom() != null) {
-         utilisateur.setNom(utilisateurDTO.getNom());
-     }
+        if (utilisateurDTO.getNom() != null && !utilisateurDTO.getNom().trim().isEmpty()) {
+            utilisateur.setNom(utilisateurDTO.getNom());
+        }
 
-     if (utilisateurDTO.getNumeroMobile() != null) {
-         utilisateur.setNumeroMobile(utilisateurDTO.getNumeroMobile());
-     }
+        if (utilisateurDTO.getNumeroMobile() != null && !utilisateurDTO.getNumeroMobile().trim().isEmpty()) {
+            utilisateur.setNumeroMobile(utilisateurDTO.getNumeroMobile());
+        }
 
-     if (utilisateurDTO.getEmail() != null) {
-         utilisateur.setEmail(utilisateurDTO.getEmail());
-     }
+        if (utilisateurDTO.getEmail() != null && !utilisateurDTO.getEmail().trim().isEmpty()) {
+            utilisateur.setEmail(utilisateurDTO.getEmail());
+        }
 
-     if (utilisateurDTO.getMotDePasse() != null) {
-         utilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
-     }
+        if (utilisateurDTO.getMotDePasse() != null && !utilisateurDTO.getMotDePasse().trim().isEmpty()) {
+            utilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
+        }
 
-     // Mise à jour de l'adresse (si elle est fournie)
-     if (utilisateurDTO.getAdresse() != null) {
-         String pays = utilisateurDTO.getAdresse().getPays();
-         String ville = utilisateurDTO.getAdresse().getVille();
-         String codePostal = utilisateurDTO.getAdresse().getCodePostal();
-         String rue = utilisateurDTO.getAdresse().getRue();
-         String nomBatiment = utilisateurDTO.getAdresse().getNomBatiment();
+        // Mise à jour de l'adresse (si elle est fournie)
+        if (utilisateurDTO.getAdresse() != null) {
+            AdresseDTO adresseDTO = utilisateurDTO.getAdresse();
+            Adresse adresse = utilisateur.getAdresses().isEmpty() ? new Adresse() : utilisateur.getAdresses().get(0);
 
-         // Recherche de l'adresse dans la base de données
-         Adresse adresse = addressRepo.findByCountryAndCityAndPincodeAndStreetAndBuildingName(pays, ville, codePostal, rue, nomBatiment);
+            if (adresseDTO.getPays() != null && !adresseDTO.getPays().trim().isEmpty()) {
+                adresse.setCountry(adresseDTO.getPays());
+            }
 
-         // Si l'adresse n'existe pas, la créer et l'ajouter à l'utilisateur
-         if (adresse == null) {
-             adresse = new Adresse(pays, ville, codePostal, rue, nomBatiment);
-             adresse = addressRepo.save(adresse);
-         }
-         
-         utilisateur.setAdresses(List.of(adresse));
-     }
+            if (adresseDTO.getVille() != null && !adresseDTO.getVille().trim().isEmpty()) {
+                adresse.setCity(adresseDTO.getVille());
+            }
 
-     // Mapper l'entité Utilisateur mise à jour vers un UtilisateurDTO
-     utilisateurDTO = modelMapper.map(utilisateur, UtilisateurDTO.class);
+            if (adresseDTO.getCodePostal() != null && !adresseDTO.getCodePostal().trim().isEmpty()) {
+                adresse.setPincode(adresseDTO.getCodePostal());
+            }
 
-     // Si une adresse existe, la mapper vers l'objet DTO
-     if (utilisateur.getAdresses() != null && !utilisateur.getAdresses().isEmpty()) {
-         utilisateurDTO.setAdresse(modelMapper.map(utilisateur.getAdresses().stream().findFirst().get(), AdresseDTO.class));
-     }
+            if (adresseDTO.getRue() != null && !adresseDTO.getRue().trim().isEmpty()) {
+                adresse.setStreet(adresseDTO.getRue());
+            }
 
-     // Retourner l'utilisateur mis à jour sans gérer le panier
-     return utilisateurDTO;
+            if (adresseDTO.getNomBatiment() != null && !adresseDTO.getNomBatiment().trim().isEmpty()) {
+                adresse.setBuildingName(adresseDTO.getNomBatiment());
+            }
 
+            // Enregistrer l'adresse mise à jour dans la base de données
+            if (adresse.getIdAdresse() == null) { // Si l'adresse est nouvelle
+                adresse = addressRepo.save(adresse);
+                utilisateur.setAdresses(List.of(adresse)); // Associer l'adresse à l'utilisateur
+            }
+        }
+
+        // Sauvegarde de l'utilisateur mis à jour
+        userRepo.save(utilisateur);
+
+        // Mapper l'entité Utilisateur mise à jour vers un UtilisateurDTO
+        UtilisateurDTO updatedUtilisateurDTO = modelMapper.map(utilisateur, UtilisateurDTO.class);
+
+        // Si l'adresse existe, la mapper dans le DTO
+        if (utilisateur.getAdresses() != null && !utilisateur.getAdresses().isEmpty()) {
+            updatedUtilisateurDTO.setAdresse(modelMapper.map(utilisateur.getAdresses().get(0), AdresseDTO.class));
+        }
+
+        // Retourner l'utilisateur mis à jour
+        return updatedUtilisateurDTO;
     }
+
+
+
 
     @Override
     public String supprimerUtilisateur(Long utilisateurId) {

@@ -3,6 +3,7 @@ package com.doranco.site.controller;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -92,20 +93,23 @@ public class ArticleController {
 
 		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
 	}
-
-	@GetMapping("/public/produit/motcle/{motcle}")
-	public ResponseEntity<ArticleReponse> obtenirProduitsParMotCle(@PathVariable String motcle,
-			@RequestParam(name = "numeroPage", defaultValue = AppConfig.NUMERO_PAGE, required = false) Integer numeroPage,
-			@RequestParam(name = "taillePage", defaultValue = AppConfig.TAILLE_PAGE, required = false) Integer taillePage,
-			@RequestParam(name = "trierPar", defaultValue = AppConfig.TRIER_ARTICLE_PAR, required = false) String trierPar,
-			@RequestParam(name = "ordreTri", defaultValue = AppConfig.ORDONNER_PAR, required = false) String ordreTri) {
-
-		ArticleReponse reponseArticle = produitService.rechercherArticleParMotCle(motcle, numeroPage, taillePage, trierPar,
-				ordreTri);
-
-		return new ResponseEntity<ArticleReponse>(reponseArticle, HttpStatus.FOUND);
-	}
-
+	
+	 @GetMapping("/produit/name/{productName}")
+	 public ResponseEntity<Produit> getProduitByName(@PathVariable String productName) {
+		 try {
+		        Optional<Produit> produit = produitService.getProduitByName(productName);
+		        if (produit.isPresent()) {
+		            return ResponseEntity.ok(produit.get());
+		        } else {
+		            return ResponseEntity.notFound().build();  // Produit non trouvé
+		        }
+		    } catch (RuntimeException e) {
+		        // Vous pouvez ici logguer l'erreur si nécessaire
+		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+		                             .body(null);  // Retourne une réponse 500 en cas d'erreur
+		    }
+	    }
+	 
 	@PutMapping("/admin/produit/mettreAJour")
 	public ResponseEntity<ArticleDTO> mettreAJourProduit(@RequestBody ProduitDTO  produitDTO) {
 		Long articleId = produitDTO.getArticleId();

@@ -46,11 +46,10 @@ public class UtilisateurController {
 		return new ResponseEntity<UtilisateurDTO>(user, HttpStatus.FOUND);
 	}
 	
-	@PutMapping("/public/users/{userId}")
-	public ResponseEntity<UtilisateurDTO> updateUser(@RequestBody UtilisateurDTO userDTO, @PathVariable Long userId) {
-		UtilisateurDTO updatedUser = userService.mettreAJourUtilisateur(userId, userDTO);
-		
-		return new ResponseEntity<UtilisateurDTO>(updatedUser, HttpStatus.OK);
+	@PutMapping("/public/users/update")
+	public ResponseEntity<UtilisateurDTO> updateUser(@RequestBody UtilisateurDTO userDTO) {
+	    UtilisateurDTO updatedUser = userService.mettreAJourUtilisateur(userDTO);
+	    return new ResponseEntity<>(updatedUser, HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/admin/users/{userId}")

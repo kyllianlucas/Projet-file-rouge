@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -253,21 +255,33 @@ public class ArticleServiceImpl implements ArticleService {
 
 	@Override
 	public ArticleDTO mettreAJourImageArticle(Long articleId, MultipartFile image) throws IOException {
-		Produit produitDB = articleRepo.findById(articleId)
-				.orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", articleId));
+	    // Récupérer le produit à partir de l'ID
+	    Produit produitDB = articleRepo.findById(articleId)
+	            .orElseThrow(() -> new ResourceNotFoundException("Produit", "produitId", articleId));
 
-		if (produitDB == null) {
-			throw new APIException("Produit non trouvé avec produitId: " + articleId);
-		}
-		
-		String nomFichier = serviceFichier.televerserImage(chemin, image);
-		
-		produitDB.setImage(nomFichier);
-		
-		Produit produitMisAJour = articleRepo.save(produitDB);
-		
-		return modelMapper.map(produitMisAJour, ArticleDTO.class);
+	    // Vérifier si le produit existe
+	    if (produitDB == null) {
+	        throw new APIException("Produit non trouvé avec produitId: " + articleId);
+	    }
+
+	    // Vérifier que l'image n'est pas vide
+	    if (image != null && !image.isEmpty()) {
+	        // Convertir l'image en tableau de bytes
+	        byte[] imageBytes = image.getBytes();
+	        
+	        // Mettre à jour l'image dans le produit
+	        produitDB.setImage(imageBytes);
+	    } else {
+	        throw new APIException("Le fichier d'image est vide ou n'a pas été fourni.");
+	    }
+
+	    // Enregistrer le produit mis à jour dans la base de données
+	    Produit produitMisAJour = articleRepo.save(produitDB);
+
+	    // Retourner le produit mis à jour sous forme de DTO
+	    return modelMapper.map(produitMisAJour, ArticleDTO.class);
 	}
+
 
 	@Override
 	public String supprimerArticle(Long articleId) {
@@ -283,5 +297,14 @@ public class ArticleServiceImpl implements ArticleService {
 
 		return "Produit avec produitId: " + articleId + " supprimé avec succès !!!";
 	}
-
+	
+	public Optional<Produit> getProduitByName(String productName) {
+		try {
+	        return articleRepo.findByProductNameIgnoreCase(productName);
+	    } catch (NoSuchElementException e) {
+	        throw new RuntimeException("Produit non trouvé : " + productName);
+	    } catch (Exception e) {
+	        throw new RuntimeException("Erreur lors de la récupération du produit : " + e.getMessage());
+	    }
+    }
 }

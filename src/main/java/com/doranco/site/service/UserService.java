@@ -11,7 +11,7 @@ public interface UserService {
 
     UtilisateurDTO obtenirUtilisateurParId(Long utilisateurId);
 
-    UtilisateurDTO mettreAJourUtilisateur(Long utilisateurId, UtilisateurDTO utilisateurDTO);
+    UtilisateurDTO mettreAJourUtilisateur( UtilisateurDTO utilisateurDTO);
 
     String supprimerUtilisateur(Long utilisateurId);
 }
