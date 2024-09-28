@@ -22,3 +22,7 @@ jwt:
    expiration: 1200000   # Durée d'expiration en milisecondes (20 minutes)
 project:
   image: images/
+
+stripe:
+  api:
+    key: sk_test_51PVFTHP8RWx0diMWWy8IRbANSx1rbWqu2pWAcYbH5LrJRSL8A7WB5yZzAVMPVmk0TgJJKvWfMb1xDzdF1i9sArJ3006AeBqas9
