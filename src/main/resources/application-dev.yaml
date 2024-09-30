@@ -7,10 +7,10 @@ spring:
   hibernate:
    ddl-auto: update
  datasource:
-    url: jdbc:mysql://13.51.146.75:3308/e-commerce
-    username: root
-    password: Kylroz2002!
-    driverClassName: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://localhost:3308/e-commerce
+  username: root
+  password: supersecret
+  driverClassName: com.mysql.cj.jdbc.Driver
  servlet:
    multipart:
     enabled: true         # Active le multipart
@@ -22,7 +22,6 @@ jwt:
    expiration: 1200000   # Durée d'expiration en milisecondes (20 minutes)
 project:
   image: images/
-
 stripe:
   api:
     key: sk_test_51PVFTHP8RWx0diMWWy8IRbANSx1rbWqu2pWAcYbH5LrJRSL8A7WB5yZzAVMPVmk0TgJJKvWfMb1xDzdF1i9sArJ3006AeBqas9

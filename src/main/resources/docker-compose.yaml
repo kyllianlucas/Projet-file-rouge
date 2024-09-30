@@ -8,8 +8,6 @@ services:
       - MYSQL_DATABASE=e-commerce
       - MYSQL_ROOT_PASSWORD=supersecret
     volumes:
-      #- $HOME/Docker-Data/wildfly-mysql-data/db/init/:/docker-entrypoint-initdb.d/ # init database
-      #- $HOME/Docker-Data/wildfly-mysql-data/db/data/:/var/lib/mysql/              # data storage
       - db-init:/docker-entrypoint-initdb.d/
       - db-data:/var/lib/mysql/
     ports:
@@ -19,19 +17,38 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: "e-commerce"
     links:
-    - tm-mysql
+      - tm-mysql
     environment:
       PMA_HOST: tm-mysql
       PMA_PORT: 3306
       PMA_PASSWORD: supersecret
       MYSQL_ROOT_PASSWORD: supersecret
     ports:
-    - "8887:80"
-  
-        
+      - "8887:80"
+
+  backend:
+    container_name: "java_backend"
+    image: mon-backend-image:latest  
+    ports:
+      - "8080:8080"  # Mappage du port de l'application
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://tm-mysql:3306/e-commerce
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: supersecret
+    depends_on:
+      - tm-mysql  # Le backend dépend de MySQL pour démarrer
+  frontend:
+    container_name: "react_frontend"
+    build:
+      context: C:\Users\kylli\Documents\GitHub\projet-file-rouge-front\react  # Remplacez par le chemin de votre app React
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+      
+      
 networks:
-    default:
-        driver: bridge
+  default:
+    driver: bridge
 
 volumes:
   db-init:
