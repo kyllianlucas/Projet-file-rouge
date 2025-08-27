@@ -38,6 +38,7 @@ public class SecurityConfig {
 			.csrf()
 			.disable()
 			.authorizeHttpRequests()
+			.requestMatchers("/h2-console/**").permitAll()
 			.requestMatchers(AppConfig.URL_PUBLIC).permitAll()
 			.requestMatchers(AppConfig.URL_UTILISATEUR).hasAnyAuthority("USER", "ADMIN")
 			.requestMatchers(AppConfig.URL_ADMIN).hasAuthority("ADMIN")
