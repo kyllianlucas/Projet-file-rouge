@@ -32,8 +32,10 @@ import com.doranco.site.repository.RoleRepository;
 import com.doranco.site.repository.UtilisateurRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Transactional
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -57,52 +59,65 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UtilisateurDTO enregistrerUtilisateur(UtilisateurDTO utilisateurDTO) {
+        log.info("Début enregistrement utilisateur: {}", utilisateurDTO.getEmail());
 
         try {
             // Mapping DTO to entity
             Utilisateur utilisateur = modelMapper.map(utilisateurDTO, Utilisateur.class);
-            
-            if (utilisateur.getRoles() == null) {
-                utilisateur.setRoles(new HashSet<>()); // Utiliser HashSet pour initialiser les rôles
-            }
-            
-            // Ajout du rôle par défaut (utilisateur)
-            Role role = roleRepo.findById(AppConfig.ID_UTILISATEUR).get();
-            utilisateur.getRoles().add(role);
 
-            // Gestion de l'adresse de l'utilisateur
+            if (utilisateur.getRoles() == null) {
+                utilisateur.setRoles(new HashSet<>());
+            }
+
+            // Ajout du rôle par défaut
+            Role role = roleRepo.findById(AppConfig.ID_UTILISATEUR)
+                    .orElseThrow(() -> {
+                        log.error("Rôle par défaut ID={} introuvable", AppConfig.ID_UTILISATEUR);
+                        return new APIException("Rôle par défaut introuvable");
+                    });
+            utilisateur.getRoles().add(role);
+            log.debug("Rôle par défaut ajouté: {}", role.getNomRole());
+
+            // Gestion de l'adresse
             String pays = utilisateurDTO.getAdresse().getPays();
             String ville = utilisateurDTO.getAdresse().getVille();
             String codePostal = utilisateurDTO.getAdresse().getCodePostal();
             String rue = utilisateurDTO.getAdresse().getRue();
             String nomBatiment = utilisateurDTO.getAdresse().getNomBatiment();
 
-            // Vérification si l'adresse existe déjà, sinon création
-            Adresse adresse = addressRepo.findByCountryAndCityAndPincodeAndStreetAndBuildingName(pays, 
-                    ville, codePostal, rue, nomBatiment);
+            Adresse adresse = addressRepo.findByCountryAndCityAndPincodeAndStreetAndBuildingName(
+                    pays, ville, codePostal, rue, nomBatiment);
 
             if (adresse == null) {
-                adresse = new Adresse(pays, ville, codePostal, rue, nomBatiment);
-                adresse = addressRepo.save(adresse);
+                log.debug("Adresse inexistante, création d'une nouvelle: {}, {}, {}", rue, ville, pays);
+                adresse = addressRepo.save(new Adresse(pays, ville, codePostal, rue, nomBatiment));
+            } else {
+                log.debug("Adresse existante trouvée: id={}", adresse.getIdAdresse());
             }
 
             utilisateur.setAdresses(List.of(adresse));
 
-            // Si un panier est fourni dans le DTO, l'associer à l'utilisateur
+            // Gestion du panier
             if (utilisateurDTO.getPanier() != null) {
                 Panier panier = modelMapper.map(utilisateurDTO.getPanier(), Panier.class);
                 utilisateur.setPanier(panier);
-                panier.setUtilisateur(utilisateur);  // Associer le panier à l'utilisateur
+                panier.setUtilisateur(utilisateur);
+                log.debug("Panier associé à l'utilisateur: {}", utilisateurDTO.getPanier().getPanierId());
             }
 
-            // Sauvegarde de l'utilisateur (avec ou sans panier)
             Utilisateur utilisateurEnregistre = userRepo.save(utilisateur);
 
-            // Mapping de l'utilisateur enregistré vers le DTO de réponse
-            utilisateurDTO = modelMapper.map(utilisateurEnregistre, UtilisateurDTO.class);
-            utilisateurDTO.setAdresse(modelMapper.map(utilisateur.getAdresses().stream().findFirst().get(), AdresseDTO.class));
+            log.info("Utilisateur enregistré avec succès: id={}, email={}",
+                    utilisateurEnregistre.getIdUtilisateur(), utilisateurEnregistre.getEmail());
 
-            // Si un panier est associé, le mapper également dans le DTO
+            // Mapping de retour DTO
+            utilisateurDTO = modelMapper.map(utilisateurEnregistre, UtilisateurDTO.class);
+            utilisateurDTO.setAdresse(
+                    modelMapper.map(
+                            utilisateur.getAdresses().stream().findFirst()
+                                    .orElseThrow(() -> new APIException("Aucune adresse associée")),
+                            AdresseDTO.class));
+
             if (utilisateurEnregistre.getPanier() != null) {
                 utilisateurDTO.setPanier(modelMapper.map(utilisateurEnregistre.getPanier(), PanierDTO.class));
             }
@@ -110,7 +125,11 @@ public class UserServiceImpl implements UserService {
             return utilisateurDTO;
 
         } catch (DataIntegrityViolationException e) {
+            log.warn("Tentative d'inscription avec un email déjà existant: {}", utilisateurDTO.getEmail());
             throw new APIException("Utilisateur déjà existant avec l'email : " + utilisateurDTO.getEmail());
+        } catch (Exception e) {
+            log.error("Erreur lors de l’enregistrement de l’utilisateur {}: {}", utilisateurDTO.getEmail(), e.getMessage(), e);
+            throw new APIException("Échec de l’enregistrement: " + e.getMessage());
         }
     }
 

@@ -7,11 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +24,10 @@ import com.doranco.site.securite.JWTUtil;
 import com.doranco.site.service.UserService;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
 @RequestMapping("/api")
 public class AuthController{
 
@@ -42,53 +44,70 @@ public class AuthController{
 	private PasswordEncoder encodeurMotDePasse;
 
 	@PostMapping("/inscription")
-	public ResponseEntity<Map<String, Object>> gestionInscription(@Valid @RequestBody UtilisateurDTO utilisateurDTO) throws UsernameNotFoundException {
-		String motDePasseEncode = encodeurMotDePasse.encode(utilisateurDTO.getMotDePasse());
-	    utilisateurDTO.setMotDePasse(motDePasseEncode);
+    public ResponseEntity<Map<String, Object>> gestionInscription(@Valid @RequestBody UtilisateurDTO utilisateurDTO) {
+        log.info("Tentative d’inscription pour l’email: {}", utilisateurDTO.getEmail());
 
-	    UtilisateurDTO utilisateurEnregistre = serviceUtilisateur.enregistrerUtilisateur(utilisateurDTO);
+        try {
+            String motDePasseEncode = encodeurMotDePasse.encode(utilisateurDTO.getMotDePasse());
+            utilisateurDTO.setMotDePasse(motDePasseEncode);
 
-	    // Extraire le rôle (ici on suppose qu'il y a un seul rôle pour simplifier)
-	    String role = utilisateurEnregistre.getRoles().stream().findFirst().orElse("USER"); // ou un autre rôle par défaut
+            UtilisateurDTO utilisateurEnregistre = serviceUtilisateur.enregistrerUtilisateur(utilisateurDTO);
 
-	    String token = jwtUtil.generateToken(utilisateurEnregistre.getEmail(), role);
+            String role = utilisateurEnregistre.getRoles().stream()
+                    .findFirst()
+                    .orElse("USER");
 
-	    return new ResponseEntity<Map<String, Object>>(Collections.singletonMap("jwt-token", token), HttpStatus.CREATED);
-	}
+            String token = jwtUtil.generateToken(utilisateurEnregistre.getEmail(), role);
 
+            log.info("Inscription réussie pour l’email: {}, rôle attribué: {}", utilisateurEnregistre.getEmail(), role);
 
-	@PostMapping("/connexion")
-	public Map<String, Object> gestionConnexion(@Valid @RequestBody IdentifiantsConnexion identifiants) {
+            return new ResponseEntity<>(Collections.singletonMap("jwt-token", token), HttpStatus.CREATED);
 
-	    // Créer l'objet d'authentification
-	    UsernamePasswordAuthenticationToken authCredentials = new UsernamePasswordAuthenticationToken(
-	            identifiants.getEmail(), identifiants.getMotDePasse());
+        } catch (Exception e) {
+            log.error("Erreur lors de l’inscription pour l’email: {} - {}", utilisateurDTO.getEmail(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Échec de l’inscription: " + e.getMessage()));
+        }
+    }
 
-	    // Authentifier l'utilisateur
-	    Authentication authentication = gestionnaireAuthentification.authenticate(authCredentials);
+    @PostMapping("/connexion")
+    public ResponseEntity<Map<String, Object>> gestionConnexion(@Valid @RequestBody IdentifiantsConnexion identifiants) {
+        log.info("Tentative de connexion pour l’email: {}", identifiants.getEmail());
 
-	    // Mettre à jour le contexte de sécurité avec l'authentification
-	    SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            UsernamePasswordAuthenticationToken authCredentials =
+                    new UsernamePasswordAuthenticationToken(identifiants.getEmail(), identifiants.getMotDePasse());
 
-	    // Récupérer les détails de l'utilisateur authentifié
-	    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Authentication authentication = gestionnaireAuthentification.authenticate(authCredentials);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-	    // Extraire le rôle de l'utilisateur
-	    String role = userDetails.getAuthorities().stream()
-	            .map(grantedAuthority -> grantedAuthority.getAuthority())
-	            .findFirst()
-	            .orElse("USER"); // Valeur par défaut si aucun rôle trouvé
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-	    // Vérifier si le rôle est valide (ADMIN ou USER)
-	    if (!role.equals("ADMIN") && !role.equals("USER")) {
-	        throw new IllegalStateException("Rôle invalide: " + role);
-	    }
-	    
-	    // Générer le token avec le rôle inclus
-	    String token = jwtUtil.generateToken(identifiants.getEmail(), role);
+            String role = userDetails.getAuthorities().stream()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority())
+                    .findFirst()
+                    .orElse("USER");
 
-	    // Retourner le token JWT
-	    return Collections.singletonMap("jwt-token", token);
-	}
+            if (!role.equals("ADMIN") && !role.equals("USER")) {
+                log.warn("Connexion avec rôle inattendu: {} pour l’email: {}", role, identifiants.getEmail());
+                throw new IllegalStateException("Rôle invalide: " + role);
+            }
+
+            String token = jwtUtil.generateToken(identifiants.getEmail(), role);
+
+            log.info("Connexion réussie pour l’email: {}, rôle: {}", identifiants.getEmail(), role);
+
+            return ResponseEntity.ok(Collections.singletonMap("jwt-token", token));
+
+        } catch (BadCredentialsException e) {
+            log.warn("Échec de connexion pour l’email: {} - mauvais identifiants", identifiants.getEmail());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Identifiants incorrects"));
+        } catch (Exception e) {
+            log.error("Erreur inattendue lors de la connexion pour l’email: {} - {}", identifiants.getEmail(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "Erreur serveur: " + e.getMessage()));
+        }
+    }
 
 }

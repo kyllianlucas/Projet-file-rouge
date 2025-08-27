@@ -29,8 +29,6 @@ import com.doranco.site.repository.UtilisateurRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
-import com.stripe.model.PaymentIntent;
-import com.stripe.param.PaymentIntentCreateParams;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;

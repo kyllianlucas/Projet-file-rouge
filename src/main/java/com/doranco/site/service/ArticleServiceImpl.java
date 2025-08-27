@@ -1,6 +1,6 @@
 package com.doranco.site.service;
 
-import java.io.FileOutputStream;
+
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
@@ -20,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.doranco.site.dto.ArticleDTO;
 import com.doranco.site.dto.ArticleReponse;
-import com.doranco.site.dto.ArticleRequest;
 import com.doranco.site.exception.APIException;
 import com.doranco.site.exception.ResourceNotFoundException;
 import com.doranco.site.model.Categorie;
