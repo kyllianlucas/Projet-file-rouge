@@ -3,7 +3,7 @@ spring:
     name: e-commerce
 
   datasource:
-    url: jdbc:h2:file:./data/ecommerce;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE   # Base persistante dans un fichier
+    url: jdbc:h2:file:./data/ecommerce   # Base persistante dans un fichier
     driverClassName: org.h2.Driver
     username: sa
     password:
