@@ -27,7 +27,7 @@ spring:
 
 jwt:
   header: Authorization
-  secret: remplacezparvotreclebase64generee  # Mets ta clé en Base64
+  secret: remplacezparvotreclebase64generee  # Mets ta clé en Base64 a changer par une vrai clef
   expiration: 1200000   # Durée d'expiration en millisecondes (20 minutes)
 
 project:
